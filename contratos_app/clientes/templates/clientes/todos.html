@@ -1,0 +1,93 @@
+{% extends 'clientes/base.html' %}
+
+{% block content %}
+<h2>Todos los contratos</h2>
+
+<!-- Barra de búsqueda -->
+<form method="get" action="{% url 'buscar_cliente' %}" style="margin-bottom:20px;">
+    <input type="text" name="q" id="busqueda" placeholder="Buscar cliente por nombre, correo o ID"
+           style="padding:10px; width:40%; border-radius:6px; border:1px solid #ccc;">
+    <button type="submit" class="btn">Buscar</button>
+</form>
+
+<div class="table-container">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th>Fecha de generación</th>
+                <th>PDF</th>
+                <th>Excel</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contrato in contratos %}
+            <tr>
+                <td>{{ contrato.id }}</td>
+                <td>{{ contrato.cliente.nombre }}</td>
+                <td>{{ contrato.tipo }}</td>
+                <td>{{ contrato.fecha_generacion }}</td>
+                <td>
+                    {% if contrato.pdf %}
+                    <a href="{{ contrato.pdf.url }}" target="_blank" class="btn btn-small">📄 PDF</a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if contrato.excel %}
+                    <a href="{{ contrato.excel.url }}" target="_blank" class="btn btn-small">📊 Excel</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center;">No hay contratos registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.styled-table thead {
+    background: #2c3e50;
+    color: #ecf0f1;
+    text-align: left;
+}
+
+.styled-table th, 
+.styled-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #ddd;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #f1f5f9;
+    transition: background 0.2s;
+}
+
+.btn-small {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+</style>
+
+{% endblock %}

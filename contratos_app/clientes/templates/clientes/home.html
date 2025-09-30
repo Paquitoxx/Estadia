@@ -1,0 +1,48 @@
+{% extends "clientes/base.html" %}
+
+{% block title %}Inicio - Gestión Contratos{% endblock %}
+
+{% block content %}
+<h1>Bienvenido a Gestión de Contratos</h1>
+<p>Selecciona una opción para comenzar:</p>
+
+<div class="dashboard">
+    <div class="card">
+        <h3>📌 Contratos recientes</h3>
+        <p>Consulta los contratos generados más recientemente en el sistema.</p>
+        <a href="{% url 'contratos_recientes' %}" class="btn">Ver contratos</a>
+    </div>
+
+    <div class="card">
+        <h3>✍️ Nuevo contrato</h3>
+        <p>Crea un nuevo contrato seleccionando un cliente del sistema.</p>
+        <a href="{% url 'nuevo_contrato' %}" class="btn">Crear contrato</a>
+    </div>
+
+    <div class="card">
+        <h3>📂 Todos los contratos</h3>
+        <p>Revisa el historial completo de contratos registrados.</p>
+        <a href="{% url 'todos_contratos' %}" class="btn">Ver todos</a>
+    </div>
+
+    <div class="card">
+        <h3>🔎 Buscar cliente</h3>
+        <p>Encuentra contratos relacionados con un cliente por nombre, ID o correo.</p>
+        <form method="get" action="{% url 'buscar_cliente' %}">
+            <input type="text" name="q" placeholder="Buscar cliente..." 
+                   style="padding:8px; width:100%; margin-bottom:10px; border-radius:6px; border:1px solid #ccc;">
+            <button type="submit" class="btn">Buscar</button>
+        </form>
+    </div>
+</div>
+
+<style>
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+</style>
+
+{% endblock %}

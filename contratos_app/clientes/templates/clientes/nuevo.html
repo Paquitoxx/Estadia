@@ -1,0 +1,112 @@
+{% extends 'clientes/base.html' %}
+
+{% block content %}
+<div style="margin: 30px auto; max-width: 1000px;">
+    <div class="container" style="width: 100%; padding: 30px;">
+        <h2>Nuevo Contrato</h2>
+
+        <div id="cliente_info" style="margin-bottom: 25px; padding: 20px; background:#ecf0f1; border-radius:8px;">
+            <!-- Aquí insertaremos datos cuando venga ?cliente_id= -->
+        </div>
+
+        <!-- FORM CREAR CONTRATO -->
+        <form id="form_crear_contrato" style="margin-bottom: 30px;">
+            <label>Tipo de contrato:</label>
+            <input name="tipo" type="text" value="Contrato de servicio">
+            <input type="hidden" name="cliente_id" id="cliente_id">
+            <button type="submit" class="btn" style="width:100%;">Generar contrato (PDF + Excel)</button>
+        </form>
+
+        <!-- FIRMA -->
+        <h3>Capturar firma del cliente</h3>
+        <canvas id="firma" width="800" height="200" style="width:100%;"></canvas><br>
+        <button id="btnLimpiar" class="btn-secondary" style="margin-right: 10px;">Limpiar</button>
+        <button id="btnGuardarFirma" class="btn">Guardar Firma</button>
+
+        <!-- SUBIR INE -->
+        <h3 style="margin-top: 40px;">Subir foto INE</h3>
+        <form id="form_ine" method="post" enctype="multipart/form-data" action="">
+            {% csrf_token %}
+            <input type="file" name="foto_ine" id="foto_ine" style="margin-bottom: 15px;">
+            <button id="btnSubirIne" class="btn" style="width:100%;">Subir INE</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getQueryParam(name){
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+$(function(){
+    const clienteId = getQueryParam('cliente_id');
+    if(clienteId){
+        $.getJSON('/buscar_cliente/', {q: clienteId}, function(data){
+            let cliente = data.find(c => c.id == clienteId) || (data[0] || null);
+            if(cliente){
+                $("#cliente_info").html(`<p><strong>${cliente.nombre}</strong><br>Correo: ${cliente.correo || ''}</p>`);
+                $("#cliente_id").val(cliente.id);
+            }
+        });
+    }
+
+    $("#form_crear_contrato").on("submit", function(e){
+        e.preventDefault();
+        const fd = $(this).serialize();
+        $.post("/crear_contrato/", fd, function(res){
+            if(res.status === 'ok'){
+                alert('Contrato creado: ID ' + res.contrato_id);
+                location.href = '/contratos/recientes/';
+            } else {
+                alert('Error');
+            }
+        });
+    });
+
+    const canvas = document.getElementById('firma');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    canvas.addEventListener('mousedown', e => { drawing = true; ctx.moveTo(e.offsetX, e.offsetY); });
+    canvas.addEventListener('mousemove', e => { if(drawing){ ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); }});
+    window.addEventListener('mouseup', () => drawing = false);
+    $('#btnLimpiar').on('click', () => { ctx.clearRect(0,0,canvas.width,canvas.height); });
+
+    $('#btnGuardarFirma').on('click', function(){
+        const cliente_id = $('#cliente_id').val();
+        if(!cliente_id){ alert('Selecciona un cliente primero'); return; }
+        const dataURL = canvas.toDataURL('image/png');
+        fetch('/guardar_firma/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({cliente_id: cliente_id, imagen: dataURL})
+        }).then(r => r.json()).then(resp => {
+            if(resp.status === 'ok') alert('Firma guardada');
+            else alert('Error al guardar firma');
+        });
+    });
+
+    $('#form_ine').on('submit', function(e){
+        e.preventDefault();
+        const cliente_id = $('#cliente_id').val();
+        if(!cliente_id){ alert('Selecciona cliente primero'); return; }
+        const file = $('#foto_ine')[0].files[0];
+        if(!file){ alert('Selecciona archivo'); return; }
+        const fd = new FormData();
+        fd.append('foto_ine', file);
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        $.ajax({
+            url: `/cliente/${cliente_id}/subir_ine/`,
+            type: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function(){ alert('INE subido'); },
+            error: function(){ alert('Error al subir INE'); }
+        });
+    });
+});
+</script>
+{% endblock %}
