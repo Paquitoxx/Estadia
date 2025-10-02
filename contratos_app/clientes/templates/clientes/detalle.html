@@ -1,0 +1,72 @@
+{% extends 'clientes/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">
+            📄 Detalle del Contrato #{{ contrato.id }}
+        </h2>
+        <a href="{% url 'todos_contratos' %}" class="btn btn-outline-secondary">
+            ⬅ Volver a contratos
+        </a>
+    </div>
+
+    <!-- Card con la info -->
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-body">
+            <h5 class="card-title text-dark mb-3">
+                Cliente: <span class="text-primary">{{ contrato.cliente.nombre }}</span>
+            </h5>
+            <p class="mb-2"><strong>Correo:</strong> {{ contrato.cliente.correo|default:"No registrado" }}</p>
+            <p class="mb-2"><strong>Teléfono:</strong> {{ contrato.cliente.telefono|default:"No registrado" }}</p>
+            <p class="mb-2"><strong>Tipo de contrato:</strong> {{ contrato.tipo }}</p>
+            <p class="mb-2"><strong>Fecha de generación:</strong> {{ contrato.fecha_generacion }}</p>
+        </div>
+    </div>
+
+    <!-- Archivos asociados -->
+    <div class="mt-4">
+        <h5 class="fw-bold mb-3">📂 Archivos asociados</h5>
+        <div class="d-flex gap-3">
+            {% if contrato.pdf %}
+                <a href="{{ contrato.pdf.url }}" target="_blank" class="btn btn-danger">
+                    📕 Ver PDF
+                </a>
+            {% else %}
+                <button class="btn btn-outline-danger" disabled>📕 PDF no disponible</button>
+            {% endif %}
+
+            {% if contrato.excel %}
+                <a href="{{ contrato.excel.url }}" target="_blank" class="btn btn-success">
+                    📊 Ver Excel
+                </a>
+            {% else %}
+                <button class="btn btn-outline-success" disabled>📊 Excel no disponible</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Firma e INE -->
+    <div class="row mt-5">
+        <div class="col-md-6 text-center">
+            <h6 class="fw-bold">Firma</h6>
+            {% if contrato.cliente.firma_imagen %}
+                <img src="{{ contrato.cliente.firma_imagen.url }}" 
+                    alt="Firma" class="img-fluid border rounded shadow-sm p-2">
+            {% else %}
+                <p class="text-muted">No se ha registrado firma.</p>
+            {% endif %}
+        </div>
+        <div class="col-md-6 text-center">
+            <h6 class="fw-bold">INE</h6>
+            {% if contrato.cliente.foto_ine %}
+                <img src="{{ contrato.cliente.foto_ine.url }}" 
+                    alt="INE" class="img-fluid border rounded shadow-sm p-2">
+            {% else %}
+                <p class="text-muted">No se ha subido INE.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

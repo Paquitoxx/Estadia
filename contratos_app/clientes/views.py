@@ -135,3 +135,11 @@ def crear_contrato_desde_cliente(request):
     generar_pdf_contrato(contrato)
     generar_excel_contrato(contrato)
     return JsonResponse({'status':'ok','contrato_id': contrato.id})
+
+def detalle_contrato(request, id, cliente_nombre):
+    contrato = get_object_or_404(Contrato, pk=id)
+    return render(request, 'clientes/detalle.html', {
+        'contrato': contrato,
+        'nombre_url': cliente_nombre
+    })
+
