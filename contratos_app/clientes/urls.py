@@ -10,4 +10,5 @@ urlpatterns = [
     path('cliente/<int:cliente_id>/subir_ine/', views.subir_ine, name='subir_ine'),
     path('guardar_firma/', views.guardar_firma, name='guardar_firma'),
     path('crear_contrato/', views.crear_contrato_desde_cliente, name='crear_contrato'),
+    path('detalle/<int:id>/<str:cliente_nombre>/', views.detalle_contrato, name='detalle_contrato'),
 ]
