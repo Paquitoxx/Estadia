@@ -29,17 +29,52 @@ def nuevo_contrato(request):
     form = ContratoForm()
     return render(request, 'clientes/nuevo.html', {'form': form})
 
+import requests
+from django.http import JsonResponse
+from django.shortcuts import render
+
 def buscar_cliente(request):
-    q = request.GET.get('q', '')
-    if not q:
-        return JsonResponse([], safe=False)
-    clientes = ClienteLocal.objects.filter(
-        Q(nombre__icontains=q) |
-        Q(correo__icontains=q) |
-        Q(identificador_externo__icontains=q)
-    )[:20]
-    data = [{'id': c.id, 'nombre': c.nombre, 'correo': c.correo, 'telefono': c.telefono} for c in clientes]
-    return JsonResponse(data, safe=False)
+    query = request.GET.get('q', '')
+    resultados = []
+
+    if query:
+        URL = "https://cwg.org.mx/crm/api/v1.0/clients"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Auth-App-Key': ''  # ← Coloca aquí tu API key real
+        }
+        params = {
+            'query': query,
+            'limit': 10
+        }
+
+        try:
+            respuesta = requests.get(URL, headers=headers, params=params, timeout=10)
+            if respuesta.status_code == 200:
+                datos = respuesta.json()
+
+                # ✅ La API puede devolver lista o diccionario
+                if isinstance(datos, list):
+                    resultados = datos
+                elif isinstance(datos, dict):
+                    resultados = datos.get('results', [])
+                else:
+                    resultados = []
+            else:
+                resultados = [{'error': f'Error {respuesta.status_code} al consultar la API'}]
+        except Exception as e:
+            resultados = [{'error': str(e)}]
+
+    # ✅ Si es una solicitud AJAX (fetch desde JS), devolvemos JSON
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'resultados': resultados})
+
+    # ✅ Si no es AJAX, renderizamos la plantilla completa
+    return render(request, 'clientes/busqueda_clientes.html', {
+        'busqueda': query,
+        'resultados': resultados
+    })
+
 
 @csrf_exempt
 def guardar_firma(request):

@@ -7,42 +7,166 @@
 <p>Selecciona una opción para comenzar:</p>
 
 <div class="dashboard">
-    <div class="card">
-        <h3>📌 Contratos recientes</h3>
-        <p>Consulta los contratos generados más recientemente en el sistema.</p>
-        <a href="{% url 'contratos_recientes' %}" class="btn">Ver contratos</a>
-    </div>
-
-    <div class="card">
-        <h3>✍️ Nuevo contrato</h3>
-        <p>Crea un nuevo contrato seleccionando un cliente del sistema.</p>
-        <a href="{% url 'nuevo_contrato' %}" class="btn">Crear contrato</a>
-    </div>
-
-    <div class="card">
-        <h3>📂 Todos los contratos</h3>
-        <p>Revisa el historial completo de contratos registrados.</p>
-        <a href="{% url 'todos_contratos' %}" class="btn">Ver todos</a>
-    </div>
-
-    <div class="card">
+    <div class="card" id="cliente-search-card">
         <h3>🔎 Buscar cliente</h3>
-        <p>Encuentra contratos relacionados con un cliente por nombre, ID o correo.</p>
-        <form method="get" action="{% url 'buscar_cliente' %}">
-            <input type="text" name="q" placeholder="Buscar cliente..." 
-                style="padding:8px; width:100%; margin-bottom:10px; border-radius:6px; border:1px solid #ccc;">
+        <p>Encuentra un cliente del CRM por nombre, ID o correo.</p>
+        
+        <form id="form-busqueda-cliente" style="display: flex; gap: 5px; margin-bottom: 15px;">
+            <input type="text" id="input-busqueda-cliente" name="q" placeholder="Buscar cliente..." 
+                style="padding:10px; flex-grow: 1; border-radius:6px; border:1px solid #ccc;"
+                required>
             <button type="submit" class="btn">Buscar</button>
         </form>
+
+        <div id="resultados-container-cliente">
+            <p style="color:#6c757d;">Introduce un término y presiona Buscar.</p>
+        </div>
     </div>
-</div>
+    
+    </div>
 
 <style>
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 30px;
+/* ... (Tus estilos existentes) ... */
+
+/* Estilos para los resultados de la búsqueda (profesional y amigable) */
+.resultado-tarjeta {
+    border: 1px solid #e0e0e0;
+    border-left: 5px solid #007bff; /* Resalte de color */
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 10px;
+    background-color: #f8f8ff;
+    transition: transform 0.1s;
 }
+.resultado-tarjeta:hover {
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+.resultado-tarjeta h5 {
+    color: #333;
+    margin: 0 0 10px 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+.info-line {
+    font-size: 0.9em;
+    margin-bottom: 3px;
+}
+.info-label {
+    font-weight: 600;
+    color: #555;
+    display: inline-block;
+    width: 70px; /* Ancho ajustado para mejor alineación */
+}
+.error-mensaje-card {
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+.loading-card {
+    text-align: center;
+    color: #007bff;
+    font-style: italic;
+}
+/* Asegúrate de que los estilos .dashboard, .card, .btn también estén en el CSS final */
 </style>
 
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // -----------------------------------------------------
+    // 1. MANEJAR EL ENVÍO DEL FORMULARIO DE BÚSQUEDA (AJAX)
+    // -----------------------------------------------------
+    $('#form-busqueda-cliente').submit(function(e) {
+        e.preventDefault(); 
+
+        var query = $('#input-busqueda-cliente').val().trim();
+        var container = $('#resultados-container-cliente');
+
+        if (query === '') {
+            container.html('<p class="error-mensaje-card">⚠️ Introduce un término de búsqueda válido.</p>');
+            return;
+        }
+
+        // Mostrar indicador de carga
+        container.html('<p class="loading-card">Buscando clientes... 🚀</p>'); 
+
+        // Llamada AJAX a la vista 'buscar_cliente'
+        $.ajax({
+            url: "{% url 'buscar_cliente' %}", 
+            type: 'GET',
+            data: { 'q': query },
+            dataType: 'json',
+            success: function(data) {
+                container.empty(); 
+                renderizarResultados(data.resultados, container);
+            },
+            error: function(xhr, status, error) {
+                container.html('<p class="error-mensaje-card">❌ Error de conexión al sistema CRM.</p>');
+                console.error("AJAX Error:", status, error);
+            }
+        });
+    });
+
+    // -----------------------------------------------------
+    // 2. FUNCIÓN PARA RENDERIZAR RESULTADOS (Formato Tarjeta)
+    // -----------------------------------------------------
+    function renderizarResultados(resultados, container) {
+        
+        // Manejar errores devueltos por la API/Vista
+        if (resultados.length === 1 && resultados[0].error) {
+            container.html('<p class="error-mensaje-card">🚨 Error: ' + resultados[0].error + '</p>');
+            return;
+        }
+        
+        // Manejar no resultados
+        if (resultados.length === 0) {
+            container.html('<p style="color:#dc3545;">😔 No se encontraron clientes que coincidan.</p>');
+            return;
+        }
+        
+        // Renderizar las tarjetas de clientes
+        $.each(resultados, function(index, cliente) {
+            var tarjeta = $('<div class="resultado-tarjeta"></div>');
+            
+            // 🛑 AJUSTE FINAL: EXTRACCIÓN DE DATOS
+            
+            // 1. Nombre Completo (firstName + lastName)
+            var nombre = (cliente.firstName || '') + ' ' + (cliente.lastName || '');
+            nombre = nombre.trim() || 'Nombre N/A';
+            
+            // 2. ID y Nombre de Organización
+            var id_cliente = cliente.id || 'ID N/A';
+            var empresa = cliente.organizationName || 'Empresa N/A'; 
+            
+            // 3. Correo y Teléfono (Vienen ANIDADOS dentro del primer objeto de 'contacts')
+            var email = 'Email N/A';
+            var telefono = 'Teléfono N/A';
+            
+            if (cliente.contacts && cliente.contacts.length > 0) {
+                var contacto_principal = cliente.contacts[0];
+                email = contacto_principal.email || 'Email N/A';
+                telefono = contacto_principal.phone || 'Teléfono N/A';
+            }
+            // -------------------------------------------------------
+
+            tarjeta.append('<h5>👤 ' + nombre + '</h5>');
+            tarjeta.append('<div class="info-line"><span class="info-label">ID:</span>' + id_cliente + '</div>');
+            tarjeta.append('<div class="info-line"><span class="info-label">Empresa:</span>' + empresa + '</div>');
+            tarjeta.append('<div class="info-line"><span class="info-label">Correo:</span><strong>' + email + '</strong></div>');
+            tarjeta.append('<div class="info-line"><span class="info-label">Teléfono:</span>' + telefono + '</div>');
+            
+            // Opción: Botón para seleccionar/usar este cliente
+            // Asume que 'nuevo_contrato' espera un client_id en la URL
+            tarjeta.append('<a href="{% url "nuevo_contrato" %}?client_id=' + id_cliente + '" class="btn" style="margin-top:10px; font-size: 0.9em; padding: 5px 10px;">Seleccionar</a>');
+            
+            container.append(tarjeta);
+        });
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}
