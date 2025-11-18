@@ -3,29 +3,49 @@
 {% block title %}Inicio - Gestión Contratos{% endblock %}
 
 {% block content %}
+
+<!-- 🔵 LOGO SUPERIOR IZQUIERDO -->
+<div style="display:flex; align-items:center; margin-bottom:20px;">
+    <img src="https://cdn.discordapp.com/attachments/1422599968648073261/1425183133518790756/Logo_horizontal_wips.png?ex=691d5ef9&is=691c0d79&hm=eb9949b5265c0ba7205eee829ea5a25bdcd4707da92466fcd8f104b87333bddf"
+         alt="Logo"
+         style="height:60px; width:auto;">
+</div>
+
 <h1>Bienvenido a Gestión de Contratos</h1>
 <p>Selecciona una opción para comenzar:</p>
 
 <div class="dashboard">
+
+    <!-- 🔹 TARJETA DE BÚSQUEDA -->
     <div class="card" id="cliente-search-card">
+
         <h3>🔎 Buscar cliente</h3>
         <p>Encuentra un cliente del CRM por nombre, ID o correo.</p>
 
-        <!-- FORMULARIO DE BÚSQUEDA -->
-        <form id="form-busqueda-cliente" style="display: flex; gap: 5px; margin-bottom: 15px;">
-            <input type="text" id="input-busqueda-cliente" name="q" placeholder="Buscar cliente..."
-                style="padding:10px; flex-grow: 1; border-radius:6px; border:1px solid #ccc;" required>
+        <!-- 🟦 FORMULARIO -->
+        <form id="form-busqueda-cliente"
+              style="display:flex; gap:5px; margin-bottom:15px;">
+            <input type="text"
+                   id="input-busqueda-cliente"
+                   name="q"
+                   placeholder="Buscar cliente..."
+                   style="padding:10px; flex-grow:1; border-radius:6px; border:1px solid #ccc;"
+                   required>
+
             <button type="submit" class="btn">Buscar</button>
         </form>
 
-        <!-- CONTENEDOR DE RESULTADOS -->
+        <!-- 🧩 RESULTADOS -->
         <div id="resultados-container-cliente">
             <p style="color:#6c757d;">Introduce un término y presiona Buscar.</p>
         </div>
+
     </div>
 </div>
 
+<!-- 🎨 ESTILOS -->
 <style>
+/* Tarjetas de resultados */
 .resultado-tarjeta {
     border: 1px solid #e0e0e0;
     border-left: 5px solid #007bff;
@@ -96,65 +116,71 @@
     background-color: #e9f9ee !important;
 }
 </style>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
 $(document).ready(function() {
+
     let clienteSeleccionado = null;
 
-    // 🔎 Envío del formulario de búsqueda
+    /* 🟦 FORMULARIO DE BÚSQUEDA */
     $('#form-busqueda-cliente').submit(function(e) {
         e.preventDefault(); 
-        var query = $('#input-busqueda-cliente').val().trim();
-        var container = $('#resultados-container-cliente');
+        const query = $('#input-busqueda-cliente').val().trim();
+        const container = $('#resultados-container-cliente');
 
         if (query === '') {
             container.html('<p class="error-mensaje-card">⚠️ Introduce un término de búsqueda válido.</p>');
             return;
         }
 
-        container.html('<p class="loading-card">Buscando clientes... 🚀</p>'); 
+        container.html('<p class="loading-card">Buscando clientes... 🚀</p>');
 
         $.ajax({
             url: "{% url 'buscar_cliente' %}",
-            type: 'GET',
-            data: { 'q': query },
-            dataType: 'json',
+            type: "GET",
+            data: { q: query },
+            dataType: "json",
             success: function(data) {
-                container.empty(); 
+                container.empty();
                 renderizarResultados(data.resultados, container);
             },
-            error: function(xhr, status, error) {
+            error: function() {
                 container.html('<p class="error-mensaje-card">❌ Error al conectar con el servidor.</p>');
-                console.error("AJAX Error:", status, error);
             }
         });
     });
 
-    // 🧩 Renderizar tarjetas
+    /* 🧩 RENDERIZAR RESULTADOS */
     function renderizarResultados(resultados, container) {
+
         if (!resultados || resultados.length === 0) {
             container.html('<p style="color:#dc3545;">😔 No se encontraron clientes que coincidan.</p>');
             return;
         }
 
         container.html('<h4>Resultados de la búsqueda:</h4>');
-        resultados.forEach(function(cliente) {
-            var nombre = ((cliente.firstName || '') + ' ' + (cliente.lastName || '')).trim() || 'Nombre N/A';
-            var id_cliente = cliente.id || 'N/A';
-            var empresa = cliente.organizationName || 'N/A';
-            var email = 'N/A';
-            var telefono = 'N/A';
 
-            if (cliente.contacts && cliente.contacts.length > 0) {
-                var contacto = cliente.contacts[0];
+        resultados.forEach(cliente => {
+
+            const nombre = ((cliente.firstName || '') + ' ' + (cliente.lastName || '')).trim() || 'Nombre N/A';
+            const id_cliente = cliente.id || 'N/A';
+            const empresa = cliente.organizationName || 'N/A';
+
+            let email = 'N/A';
+            let telefono = 'N/A';
+
+            if (cliente.contacts?.length > 0) {
+                const contacto = cliente.contacts[0];
                 email = contacto.email || 'N/A';
                 telefono = contacto.phone || 'N/A';
             }
 
-            var tarjeta = $(`
+            const tarjeta = $(`
                 <div class="resultado-tarjeta" data-id="${id_cliente}">
                     <h5>👤 ${nombre}</h5>
                     <div class="info-line"><span class="info-label">ID:</span>${id_cliente}</div>
@@ -169,14 +195,13 @@ $(document).ready(function() {
         });
     }
 
-    // 🟢 Seleccionar cliente
-    $(document).on('click', '.btn-seleccionar', function() {
+    /* 🟢 SELECCIONAR CLIENTE */
+    $(document).on("click", ".btn-seleccionar", function() {
         $('.resultado-tarjeta').removeClass('seleccionado');
         $(this).closest('.resultado-tarjeta').addClass('seleccionado');
 
         clienteSeleccionado = $(this).closest('.resultado-tarjeta').data('id');
 
-        // Agregar botón “Generar contrato” si no existe
         if ($('#btn-generar-contrato').length === 0) {
             $('#resultados-container-cliente').append(`
                 <div style="text-align:center;">
@@ -186,8 +211,8 @@ $(document).ready(function() {
         }
     });
 
-    // 🧾 Botón Generar Contrato
-    $(document).on('click', '#btn-generar-contrato', function(e) {
+    /* 📄 GENERAR CONTRATO */
+    $(document).on("click", "#btn-generar-contrato", function(e) {
         e.preventDefault();
         if (!clienteSeleccionado) {
             alert('Primero selecciona un cliente.');

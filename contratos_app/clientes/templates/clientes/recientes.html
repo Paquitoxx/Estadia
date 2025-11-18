@@ -1,17 +1,36 @@
 {% extends 'clientes/base.html' %}
 
 {% block content %}
+
+<!-- 🔵 LOGO SUPERIOR IZQUIERDO -->
+<div style="display:flex; align-items:center; margin-bottom:20px;">
+    <img src="https://cdn.discordapp.com/attachments/1422599968648073261/1425183133518790756/Logo_horizontal_wips.png?ex=691d5ef9&is=691c0d79&hm=eb9949b5265c0ba7205eee829ea5a25bdcd4707da92466fcd8f104b87333bddf"
+         alt="Logo"
+         style="height:60px; width:auto;">
+</div>
+
+<!-- 🔷 TÍTULO -->
 <h2>Contratos recientes</h2>
 
-<!-- Barra de búsqueda -->
-<form method="get" action="{% url 'buscar_cliente' %}" style="margin-bottom:20px;">
-    <input type="text" name="q" id="busqueda" placeholder="Buscar cliente por nombre, correo o ID"
-        style="padding:10px; width:40%; border-radius:6px; border:1px solid #ccc;">
+<!-- 🔍 BARRA DE BÚSQUEDA -->
+<form method="get"
+      action="{% url 'buscar_cliente' %}"
+      style="margin-bottom:20px;">
+
+    <input type="text"
+           name="q"
+           id="busqueda"
+           placeholder="Buscar cliente por nombre, correo o ID"
+           style="padding:10px; width:40%; border-radius:6px; border:1px solid #ccc;">
+
     <button type="submit" class="btn">Buscar</button>
 </form>
 
+<!-- 📄 TABLA DE CONTRATOS -->
 <div class="table-container">
     <table class="styled-table">
+
+        <!-- Encabezados -->
         <thead>
             <tr>
                 <th>ID</th>
@@ -22,6 +41,8 @@
                 <th>Excel</th>
             </tr>
         </thead>
+
+        <!-- Filas -->
         <tbody>
             {% for contrato in contratos %}
             <tr>
@@ -29,65 +50,74 @@
                 <td>{{ contrato.cliente.nombre }}</td>
                 <td>{{ contrato.tipo }}</td>
                 <td>{{ contrato.fecha_generacion }}</td>
+
                 <td>
                     {% if contrato.pdf %}
-                    <a href="{{ contrato.pdf.url }}" target="_blank" class="btn btn-small">📄 PDF</a>
+                    <a href="{{ contrato.pdf.url }}"
+                       target="_blank"
+                       class="btn btn-small">📄 PDF</a>
                     {% endif %}
                 </td>
+
                 <td>
                     {% if contrato.excel %}
-                    <a href="{{ contrato.excel.url }}" target="_blank" class="btn btn-small">📊 Excel</a>
+                    <a href="{{ contrato.excel.url }}"
+                       target="_blank"
+                       class="btn btn-small">📊 Excel</a>
                     {% endif %}
                 </td>
             </tr>
+
             {% empty %}
             <tr>
                 <td colspan="6" style="text-align:center;">No hay contratos recientes</td>
             </tr>
             {% endfor %}
         </tbody>
+
     </table>
 </div>
 
+<!-- 🎨 ESTILOS -->
 <style>
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-}
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
 
-.styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-}
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
 
-.styled-table thead {
-    background: #2c3e50;
-    color: #ecf0f1;
-    text-align: left;
-}
+    .styled-table thead {
+        background: #2c3e50;
+        color: #ecf0f1;
+        text-align: left;
+    }
 
-.styled-table th, 
-.styled-table td {
-    padding: 14px 18px;
-    border-bottom: 1px solid #ddd;
-}
+    .styled-table th,
+    .styled-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #ddd;
+    }
 
-.styled-table tbody tr:hover {
-    background-color: #f1f5f9;
-    transition: background 0.2s;
-}
+    .styled-table tbody tr:hover {
+        background-color: #f1f5f9;
+        transition: background 0.2s;
+    }
 
-.btn-small {
-    padding: 6px 10px;
-    font-size: 13px;
-    border-radius: 4px;
-}
+    .btn-small {
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 4px;
+    }
 </style>
 
 {% endblock %}
