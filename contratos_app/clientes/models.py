@@ -13,13 +13,19 @@ class ClienteLocal(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.identificador_externo or self.id})"
 
+
 class Contrato(models.Model):
     cliente = models.ForeignKey(ClienteLocal, on_delete=models.CASCADE, related_name='contratos')
     fecha_generacion = models.DateTimeField(auto_now_add=True)
     tipo = models.CharField(max_length=100, default='Contrato de servicio')
+
+    # Archivos exportados (Opcionales, por si usas PDF generator aparte)
     pdf = models.FileField(upload_to='contratos_pdf/', null=True, blank=True)
     excel = models.FileField(upload_to='contratos_xlsx/', null=True, blank=True)
-    datos = models.JSONField(null=True, blank=True)  # datos capturados del contrato
+
+    # Datos del contrato
+    datos = models.JSONField(null=True, blank=True) # Guarda el JSON crudo de la API
+    html_contenido = models.TextField(null=True, blank=True)  # 🔥 AQUÍ SE GUARDA LA CARÁTULA RENDERIZADA
 
     def __str__(self):
         return f"Contrato {self.id} - {self.cliente.nombre}"

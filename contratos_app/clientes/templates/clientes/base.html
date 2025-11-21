@@ -137,6 +137,47 @@
             transform: scale(1.05);
         }
 
+        /* ===== Footer ===== */
+        .footer {
+            background: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            padding: 20px 30px;
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            justify-content: center;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-left {
+            line-height: 1.5;
+        }
+
+        .footer-right {
+            text-align: right;
+            line-height: 1.5;
+            color: #777;
+        }
+
+        @media (max-width: 700px) {
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .footer-right {
+                text-align: center;
+            }
+        }
+
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -178,9 +219,23 @@
             {% block content %}{% endblock %}
         </div>
 
-    </div>
+        <!-- ====================== FOOTER ====================== -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <strong>Nombre de la empresa</strong><br>
+                    Dirección física de la empresa<br>
+                    Tel: (000) 000 0000 · Correo: contacto@empresa.com
+                </div>
 
+                <div class="footer-right">
+                    <span>© {{ now|date:"Y" }} - Sistema de Gestión de Contratos</span><br>
+                    <span>Desarrollado para uso interno</span>
+                </div>
+            </div>
+        </footer>
 
+    </div> <!-- cierre main-content -->
 
 
     {% block extra_js %}{% endblock %}

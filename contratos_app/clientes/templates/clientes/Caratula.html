@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrato Computer World Guamúchil</title>
+    <title>Contrato - {{ cliente.nombre_completo }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        body { font-family: Arial, sans-serif; background: #525659; padding: 20px; }
         
         /* Estilo para los campos editables */
         [contenteditable="true"], input[type="text"] {
-            border: 1px dashed #ccc; /* Borde discontinuo para destacar que es editable */
+            border: 1px dashed #ccc;
             padding: 2px 5px;
             min-width: 50px;
             display: inline-block;
             cursor: text;
+            background: rgba(255, 255, 0, 0.05);
         }
         input[type="text"] {
             border: none;
             border-bottom: 1px solid #000;
+            background: transparent;
             padding: 0 3px;
             margin: 0 3px;
             min-width: 100px;
@@ -31,149 +33,118 @@
              border: 1px dashed #ccc;
              padding: 2px;
         }
+
+        /* --- DISEÑO DE LA HOJA (A4) --- */
+        .page { 
+            width: 210mm; 
+            min-height: 296mm; /* Ajustado ligeramente para evitar desbordes */
+            background: white; 
+            margin: 0 auto 20px; 
+            padding: 15mm; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); 
+            position: relative; 
+        }
+
         /* Estilos originales del contrato */
-        .page { width: 210mm; min-height: 297mm; background: white; margin: 0 auto 20px; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .header { border: 2px solid #000; margin-bottom: 15px; }
+        .header { border: 2px solid #000; margin-bottom: 10px; }
         .header-content { display: flex; align-items: center; }
-        .logo-section { width: 35%; border-right: 2px solid #000; padding: 20px; display: flex; justify-content: center; align-items: center; }
-        .logo-placeholder { width: 200px; height: 120px; background: linear-gradient(135deg, #1e5aa8 0%, #4a90e2 100%); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-weight: bold; }
-        .logo-text { font-size: 28px; margin-bottom: 5px; }
-        .logo-subtext { font-size: 10px; font-style: italic; }
-        .company-info { width: 65%; padding: 15px 20px; font-size: 11px; line-height: 1.6; }
+        .logo-section { width: 35%; border-right: 2px solid #000; padding: 15px; display: flex; justify-content: center; align-items: center; }
+        .logo-placeholder { width: 180px; height: 100px; background: linear-gradient(135deg, #1e5aa8 0%, #4a90e2 100%); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-weight: bold; }
+        .logo-text { font-size: 24px; margin-bottom: 5px; }
+        .logo-subtext { font-size: 9px; font-style: italic; }
+        .company-info { width: 65%; padding: 10px 15px; font-size: 10px; line-height: 1.5; }
         .company-info strong { font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px; }
-        table td, table th { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
-        .section-header { background: #d9d9d9; font-weight: bold; text-align: center; padding: 8px; font-size: 11px; }
-        .label { font-weight: bold; font-size: 10px; }
-        .checkbox { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #000; margin: 0 5px; vertical-align: middle; cursor: pointer; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9px; }
+        table td, table th { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }
+        .section-header { background: #d9d9d9; font-weight: bold; text-align: center; padding: 6px; font-size: 10px; }
+        
+        .label { font-weight: bold; font-size: 9px; }
+        .checkbox { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin: 0 3px; vertical-align: middle; cursor: pointer; }
         .checkbox.checked { background-color: #000; }
         .input-line { display: inline-block; border-bottom: 1px solid #000; min-width: 100px; margin: 0 3px; }
-        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .equipment-section, .installation-section { border: 1px solid #000; }
-        .payment-section { border: 1px solid #000; padding: 10px; margin-bottom: 15px; }
-        .authorization-box { border: 1px solid #000; padding: 10px; margin-bottom: 15px; font-size: 10px; }
-        .signature-section { display: flex; justify-content: space-around; margin-top: 30px; text-align: center; }
-        .signature-line { border-top: 1px solid #000; padding-top: 5px; width: 200px; font-weight: bold; font-size: 11px; }
-        .footer-note { font-size: 9px; text-align: center; margin-top: 10px; }
-        .qr-placeholder { width: 80px; height: 80px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 8px; text-align: center; margin: 10px auto; }
-        .title { font-weight: bold; font-size: 12px; margin-bottom: 10px; }
-        .small-text { font-size: 9px; line-height: 1.4; }
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .payment-section { border: 1px solid #000; padding: 8px; margin-bottom: 10px; }
+        .authorization-box { border: 1px solid #000; padding: 8px; margin-bottom: 10px; font-size: 9px; }
+        .signature-section { display: flex; justify-content: space-around; margin-top: 40px; text-align: center; }
+        .signature-line { border-top: 1px solid #000; padding-top: 5px; width: 200px; font-weight: bold; font-size: 10px; }
+        .footer-note { font-size: 8px; text-align: center; margin-top: 10px; }
+        .qr-placeholder { width: 70px; height: 70px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 8px; text-align: center; margin: 10px auto; }
+        .title { font-weight: bold; font-size: 11px; margin-bottom: 8px; }
+        .small-text { font-size: 8px; line-height: 1.4; }
 
-        /* Estilo para el botón de descarga */
-        .download-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            z-index: 1000;
+        /* --- BOTONES DE ACCIÓN (REGRESAR / IMPRIMIR) --- */
+        .barra-acciones {
+            width: 210mm;
+            margin: 0 auto 15px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .download-button:hover {
-            background-color: #45a049;
+        .btn {
+            text-decoration: none; padding: 10px 20px; border-radius: 5px;
+            font-weight: bold; font-size: 14px; cursor: pointer; border: none;
+            display: inline-flex; align-items: center; gap: 8px; color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
+        .btn-regresar { background-color: #e74c3c; }
+        .btn-imprimir { background-color: #3498db; }
 
-        /* Estilo de impresión: Ocultar botón y eliminar bordes de edición */
+        /* --- REGLAS DE IMPRESIÓN (MÁGICAS PARA 2 HOJAS) --- */
         @media print {
-            .download-button {
-                display: none;
+            @page {
+                size: A4; /* Fuerza tamaño A4 */
+                margin: 0; /* Elimina márgenes del navegador */
             }
+            body { 
+                background: white; 
+                padding: 0; 
+                margin: 0; 
+                -webkit-print-color-adjust: exact; /* Para que salgan los colores de fondo */
+            }
+            .barra-acciones { display: none !important; } /* Oculta botones */
+            
+            .page { 
+                width: 100%; 
+                height: 297mm; /* Altura exacta A4 */
+                margin: 0; 
+                padding: 15mm;
+                box-shadow: none; 
+                page-break-after: always; /* 🔥 FUERZA EL SALTO DE PÁGINA DESPUÉS DE CADA .page */
+                border: none;
+            }
+            
+            .page:last-child {
+                page-break-after: auto; /* La última página no necesita salto */
+            }
+
+            /* Limpieza visual */
             [contenteditable="true"] {
                 border: none !important;
                 padding: 0 !important;
+                background: transparent !important;
             }
             input[type="text"] {
-                border-bottom: 1px solid #000 !important; /* Asegura que la línea se mantenga */
+                border-bottom: 1px solid #000 !important;
             }
         }
     </style>
     <script>
-        // Función simple para togglgear el estado del checkbox
         function toggleCheckbox(element) {
             element.classList.toggle('checked');
-        }
-
-        // Script para inicializar los event listeners en los checkboxes
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.checkbox').forEach(checkbox => {
-                checkbox.addEventListener('click', () => toggleCheckbox(checkbox));
-            });
-        });
-        
-        // **NUEVA FUNCIÓN PARA DESCARGAR EL CONTRATO**
-        function downloadContractAsHtml() {
-            // 1. Clonar el body para manipular el contenido sin afectar la vista actual
-            const originalBody = document.body;
-            const clonedBody = originalBody.cloneNode(true);
-            
-            // 2. Eliminar el botón de descarga en el clon
-            const downloadBtn = clonedBody.querySelector('.download-button');
-            if (downloadBtn) {
-                downloadBtn.remove();
-            }
-
-            // 3. Remover estilos de edición (bordes) y deshabilitar edición en el clon
-            clonedBody.querySelectorAll('[contenteditable="true"]').forEach(el => {
-                el.removeAttribute('contenteditable');
-                el.style.border = 'none';
-                el.style.padding = '0';
-            });
-
-            // 4. Transferir los valores de los inputs a spans para que se vean fijos
-            clonedBody.querySelectorAll('input[type="text"]').forEach(input => {
-                const span = document.createElement('span');
-                span.textContent = input.value;
-                span.style.borderBottom = '1px solid #000'; // Mantener la línea del input
-                span.style.minWidth = input.style.minWidth || '100px';
-                span.style.display = 'inline-block';
-                input.parentNode.replaceChild(span, input);
-            });
-            
-            // 5. Crear el HTML completo del documento a descargar
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Contrato Computer World Lleno</title>
-                    <style>
-                        /* Incluir solo los estilos necesarios para la impresión (sin estilos de edición) */
-                        ${document.querySelector('style').innerHTML}
-                        [contenteditable="true"], input[type="text"] { border: none !important; padding: 0 !important; }
-                        .download-button { display: none; }
-                    </style>
-                </head>
-                ${clonedBody.outerHTML}
-                </html>
-            `;
-
-            // 6. Crear un Blob (archivo) y un link de descarga
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Contrato_Computer_World_Lleno.html'; // Nombre del archivo a descargar
-            
-            // 7. Simular un clic para iniciar la descarga
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            // Opcional: Sugerir la opción de PDF (es mejor para contratos)
-            alert('El contrato ha sido descargado como archivo HTML. Para un documento formal, es recomendable usar "Imprimir" (Ctrl+P o Cmd+P) y seleccionar la opción "Guardar como PDF" en su navegador.');
         }
     </script>
 </head>
 <body>
     
-    <button class="download-button" onclick="downloadContractAsHtml()">Descargar HTML</button>
-
-    <button class="download-button" style="top: 70px; background-color: #007bff;" onclick="window.print()">Guardar como PDF (Recomendado)</button>
+    <div class="barra-acciones">
+        <a href="{% url 'contratos_recientes' %}" class="btn btn-regresar">
+            ⬅ Regresar
+        </a>
+        <button onclick="window.print()" class="btn btn-imprimir">
+            🖨️ Imprimir / Guardar PDF
+        </button>
+    </div>
 
     <div class="page">
         <div class="title">CARÁTULA</div>
@@ -188,168 +159,102 @@
                     </div>
                 </div>
                 <div class="company-info">
-                    <strong>NOMBRE COMERCIAL: <span contenteditable="true" style="min-width: 150px;">COMPUTER WORLD GUAMÚCHIL</span></strong><br>
+                    <strong>NOMBRE COMERCIAL: <span contenteditable="true" style="min-width: 150px;">{{ proveedor.nombre }}</span></strong><br>
                     <strong>RAZÓN SOCIAL: <span contenteditable="true" style="min-width: 150px;">PROVEEDORA DE INTERNET S.A. DE C.V.</span></strong><br>
                     <strong>RFC: <span contenteditable="true" style="min-width: 150px;">PIS-000101-ABC</span></strong><br>
-                    <strong>DATOS DE LOCALIZACIÓN Y DE CONTACTO: <span contenteditable="true" style="min-width: 150px;">(673) 123 4567</span></strong><br>
+                    <strong>CONTACTO: <span contenteditable="true" style="min-width: 150px;">(673) 123 4567</span></strong><br>
                     <strong>DOMICILIO:</strong> <span contenteditable="true" style="min-width: 150px;">CALLE PRINCIPAL #100, CENTRO, GUAMÚCHIL, SINALOA</span>
                 </div>
             </div>
         </div>
 
         <table>
+            <tr><td colspan="3" class="section-header">SUSCRIPTOR</td></tr>
             <tr>
-                <td colspan="3" class="section-header">SUSCRIPTOR</td>
+                <td colspan="3">
+                    <div class="label" style="color:#666;">NOMBRE COMPLETO:</div>
+                    <div contenteditable="true" style="font-weight:bold;">{{ cliente.nombre_completo }}</div>
+                </td>
+            </tr>
+            <tr><td colspan="3" class="section-header">DOMICILIO</td></tr>
+            <tr>
+                <td colspan="3">
+                    <div class="label" style="color:#666;">DIRECCIÓN COMPLETA:</div>
+                    <div contenteditable="true">{{ cliente.direccion_completa }}</div>
+                </td>
             </tr>
             <tr>
-                <td style="width: 33%;"><div contenteditable="true">NOMBRE(S)</div></td>
-                <td style="width: 33%;"><div contenteditable="true">APELLIDO PATERNO</div></td>
-                <td style="width: 34%;"><div contenteditable="true">APELLIDO MATERNO</div></td>
-            </tr>
-            <tr>
-                <td colspan="3" class="section-header">DOMICILIO</td>
-            </tr>
-            <tr>
-                <td><div contenteditable="true">CALLE Y NÚMERO</div></td>
-                <td><div contenteditable="true">NÚMERO EXT.</div></td>
-                <td><div contenteditable="true">NÚMERO INT. (OPCIONAL)</div></td>
-            </tr>
-            <tr>
-                <td><div contenteditable="true">COLONIA</div></td>
-                <td><div contenteditable="true">MUNICIPIO</div></td>
-                <td><div contenteditable="true">ESTADO</div></td>
-            </tr>
-            <tr>
-                <td colspan="3"><div contenteditable="true">CÓDIGO POSTAL</div></td>
+                <td><div class="label">COLONIA</div><div contenteditable="true">Centro</div></td>
+                <td><div class="label">MUNICIPIO</div><div contenteditable="true">{{ cliente.ciudad }}</div></td>
+                <td><div class="label">ESTADO</div><div contenteditable="true">SINALOA</div></td>
             </tr>
         </table>
 
         <table>
-            <tr>
-                <td colspan="4" class="section-header">SERVICIO DE INTERNET FIJO</td>
-            </tr>
+            <tr><td colspan="4" class="section-header">SERVICIO DE INTERNET FIJO</td></tr>
             <tr>
                 <td rowspan="5" style="width: 40%;">
-                    <div contenteditable="true" style="min-height: 80px;">
+                    <div contenteditable="true" style="min-height: 60px;">
                         PLAN FIBRA ÓPTICA 100 MEGAS<br>
-                        Velocidad de Descarga: 100 Mbps<br>
-                        Velocidad de Subida: 20 Mbps<br>
-                        Garantía de velocidad: 80% del paquete
+                        Descarga: 100 Mbps / Subida: 20 Mbps
                     </div>
                 </td>
                 <td colspan="2" style="width: 30%;">
-                    $ <input type="text" value="399.00" style="width: 70px;">
+                    $ <input type="text" value="399.00" style="width: 50px;">
                 </td>
                 <td rowspan="5" style="width: 30%;">
-                    <input type="text" value="30 DE CADA MES" style="width: 90%;"><br>
-                    <span class="checkbox checked" onclick="toggleCheckbox(this)"></span> Indefinido
-                    <br>
-                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> Plazo forzoso de 
-                    <input type="text" value="12" style="width: 30px;"> meses
+                    <input type="text" value="30 DE CADA MES" style="width: 80%;"><br>
+                    <span class="checkbox checked" onclick="toggleCheckbox(this)"></span> Indefinido<br>
+                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> Plazo: <input type="text" value="12" style="width: 20px;"> meses
                 </td>
             </tr>
-            <tr>
-                <td colspan="2">FOLIO IFT: <input type="text" value="IFT-00000000" style="width: 100px;"></td>
-            </tr>
-            <tr>
-                <td colspan="2">Total, Mensualidad $ <input type="text" value="399.00" style="width: 70px;"></td>
-            </tr>
+            <tr><td colspan="2">FOLIO IFT: <input type="text" value="IFT-00000000" style="width: 80px;"></td></tr>
+            <tr><td colspan="2">Total Mensual: $ <input type="text" value="399.00" style="width: 50px;"></td></tr>
             <tr>
                 <td colspan="2">
-                    Aplica Tarifa por Reconexión:<br>
-                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> SI
-                    <span class="checkbox checked" onclick="toggleCheckbox(this)"></span> NO
-                    $ <input type="text" value="150.00" style="width: 50px;">
+                    Reconexión: $ <input type="text" value="150.00" style="width: 40px;">
                 </td>
             </tr>
-            <tr>
-                <td colspan="2">En el Estado de cuenta y/o factura se podrá visualizar la fecha de corte del servicio y fecha de pago.</td>
-            </tr>
+            <tr><td colspan="2">Fecha corte visible en factura.</td></tr>
         </table>
 
         <div class="two-column">
             <table>
-                <tr>
-                    <td colspan="2" class="section-header">DATOS DE LOS EQUIPO ENTREGADOS EN COMODATO</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%;"><div contenteditable="true">Marca Modem/Router</div></td>
-                    <td style="width: 50%;"><div contenteditable="true">Marca Antena/ONU</div></td>
-                </tr>
-                <tr>
-                    <td><div contenteditable="true">Modelo Modem/Router</div></td>
-                    <td><div contenteditable="true">Modelo Antena/ONU</div></td>
-                </tr>
-                <tr>
-                    <td><div contenteditable="true">Número de Serie M/R</div></td>
-                    <td><div contenteditable="true">Número de Serie A/O</div></td>
-                </tr>
-                <tr>
-                    <td><div contenteditable="true">Cantidad M/R</div></td>
-                    <td><div contenteditable="true">Cantidad A/O</div></td>
-                </tr>
-                <tr>
-                    <td>Garantía: <div contenteditable="true">12 MESES</div></td>
-                    <td>Garantía: <div contenteditable="true">12 MESES</div></td>
-                </tr>
+                <tr><td colspan="2" class="section-header">EQUIPO EN COMODATO</td></tr>
+                <tr><td>Marca Modem</td><td>Marca Antena</td></tr>
+                <tr><td>Modelo Modem</td><td>Modelo Antena</td></tr>
+                <tr><td>Serie Modem</td><td>Serie Antena</td></tr>
+                <tr><td>Garantía: 12 Meses</td><td>Garantía: 12 Meses</td></tr>
             </table>
 
             <table>
-                <tr>
-                    <td colspan="2" class="section-header">INSTALACIÓN DEL EQUIPO</td>
-                </tr>
-                <tr>
-                    <td colspan="2"><div contenteditable="true">Domicilio de Instalación (Si es diferente al anterior)</div></td>
-                </tr>
-                <tr>
-                    <td><div contenteditable="true">Fecha de Instalación (DD/MM/AAAA)</div></td>
-                    <td><div contenteditable="true">Hora Estimada</div></td>
-                </tr>
-                <tr>
-                    <td colspan="2">$ <input type="text" value="500.00" style="width: 70px;"></td>
-                </tr>
-                <tr>
-                    <td colspan="2">"EL PROVEEDOR" deberá efectuar las instalaciones y empezar a prestar el servicio en un plazo que no exceda de 10 días hábiles posteriores a la firma del contrato.</td>
-                </tr>
+                <tr><td colspan="2" class="section-header">INSTALACIÓN</td></tr>
+                <tr><td colspan="2">{{ cliente.direccion_completa }}</td></tr>
+                <tr><td>{% now "d/m/Y" %}</td><td>Hora:</td></tr>
+                <tr><td colspan="2">Costo: $ <input type="text" value="500.00" style="width: 50px;"></td></tr>
             </table>
         </div>
 
         <table>
-            <tr>
-                <td colspan="2" class="section-header">MÉTODO DE PAGO</td>
-            </tr>
+            <tr><td colspan="2" class="section-header">MÉTODO DE PAGO</td></tr>
             <tr>
                 <td style="width: 50%;">
-                    <span class="checkbox checked" onclick="toggleCheckbox(this)"></span> Efectivo<br>
-                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> Domiciliado con Tarjeta<br>
-                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> Transferencia Bancaria<br>
-                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> Depósito a cuenta Bancaria
+                    <span class="checkbox checked"></span> Efectivo
+                    <span class="checkbox"></span> Transferencia
                 </td>
-                <td style="width: 50%;">
-                    <div contenteditable="true" style="min-height: 80px;">
-                        Detalles Adicionales del Pago o Cuenta Bancaria
-                    </div>
-                </td>
+                <td style="width: 50%;">Detalles adicionales...</td>
             </tr>
         </table>
 
         <div class="authorization-box">
-            <div style="text-align: center; margin-bottom: 10px;"><strong>AUTORIZACIÓN PARA CARGO DE TARJETA DE CRÉDITO O DÉBITO</strong></div>
-            <div class="small-text">
-                Por medio de la presente <span class="checkbox" onclick="toggleCheckbox(this)"></span> autorizo a "EL PROVEEDOR" para cargar a mi tarjeta la cantidad por concepto de servicios por 
-                <input type="text" value="12" style="width: 30px;"> meses.
-            </div>
-            <div style="text-align: right; margin-top: 15px;">
-                <div class="input-line" style="width: 150px; height: 1.5em;"></div><br>
-                Firma
-            </div>
-            <div style="margin-top: 10px;">
-                <span class="label">Banco:</span> <input type="text" value="" style="width: 200px;"><br>
-                <span class="label">Número de Tarjeta:</span> <input type="text" value="" style="width: 200px;">
+            <div style="text-align: center; font-weight:bold;">AUTORIZACIÓN DE CARGO</div>
+            <div class="small-text">Autorizo cargo por 12 meses.</div>
+            <div style="text-align: right; margin-top: 10px;">
+                <div class="input-line" style="width: 100px;"></div><br>Firma
             </div>
         </div>
 
-        <div class="footer-note">CONTRATO NÚMERO: <span contenteditable="true">CWG-2025-00001</span></div>
+        <div class="footer-note">CONTRATO NÚMERO: {{ contrato.numero }}</div>
     </div>
 
     <div class="page">
@@ -361,68 +266,54 @@
                     <div class="logo-placeholder">
                         <div class="logo-text">COMPUTER</div>
                         <div class="logo-text">WORLD</div>
-                        <div class="logo-subtext">Innovación Inteligente</div>
                     </div>
                 </div>
                 <div class="company-info">
-                    <strong>NOMBRE COMERCIAL: <span contenteditable="true" style="min-width: 150px;">COMPUTER WORLD GUAMÚCHIL</span></strong><br>
-                    <strong>RAZÓN SOCIAL: <span contenteditable="true" style="min-width: 150px;">PROVEEDORA DE INTERNET S.A. DE C.V.</span></strong><br>
-                    <strong>RFC: <span contenteditable="true" style="min-width: 150px;">PIS-000101-ABC</span></strong><br>
-                    <strong>DATOS DE LOCALIZACIÓN Y DE CONTACTO: <span contenteditable="true" style="min-width: 150px;">(673) 123 4567</span></strong><br>
-                    <strong>DOMICILIO:</strong> <span contenteditable="true" style="min-width: 150px;">CALLE PRINCIPAL #100, CENTRO, GUAMÚCHIL, SINALOA</span>
+                    <strong>NOMBRE COMERCIAL: {{ proveedor.nombre }}</strong><br>
+                    DOMICILIO: CALLE PRINCIPAL #100, CENTRO, GUAMÚCHIL, SINALOA
                 </div>
             </div>
         </div>
 
         <table>
+            <tr><td colspan="4" class="section-header">SERVICIOS ADICIONALES</td></tr>
             <tr>
-                <td colspan="4" class="section-header">SERVICIOS ADICIONALES</td>
+                <td colspan="2">Concepto</td>
+                <td colspan="2">Costo</td>
             </tr>
-            <tr>
-                <td colspan="2"><div contenteditable="true">Ej. Renta de repetidor Wi-Fi</div></td>
-                <td colspan="2"><div contenteditable="true">$ 50.00 MXN / MES</div></td>
-            </tr>
-            <tr>
-                <td colspan="4" style="height: 40px;"><div contenteditable="true" style="border: none;"></div></td>
-            </tr>
+            <tr><td colspan="4" style="height: 30px;"></td></tr>
         </table>
 
         <table>
+            <tr><td colspan="4" class="section-header">CONCEPTOS FACTURABLES</td></tr>
             <tr>
-                <td colspan="4" class="section-header">CONCEPTOS FACTURABLES</td>
+                <td style="width: 25%;">Concepto</td>
+                <td style="width: 35%;">Descripción</td>
+                <td style="width: 15%;">Cant</td>
+                <td style="width: 25%;">Precio</td>
             </tr>
-            <tr>
-                <td style="width: 25%;"><div contenteditable="true">Ej. Cable Ethernet</div></td>
-                <td style="width: 35%;"><div contenteditable="true">Cable UTP Cat 5e, 10 metros</div></td>
-                <td style="width: 15%;"><div contenteditable="true">1</div></td>
-                <td style="width: 25%;"><div contenteditable="true">$ 150.00</div></td>
-            </tr>
-            <tr>
-                <td colspan="4" style="height: 40px;"><div contenteditable="true" style="border: none;"></div></td>
-            </tr>
+            <tr><td colspan="4" style="height: 30px;"></td></tr>
         </table>
 
         <div class="signature-section">
             <div>
-                <div class="input-line" style="width: 200px; height: 60px;"></div>
-                <div class="signature-line"><span contenteditable="true">NOMBRE DEL REPRESENTANTE</span></div>
+                <div class="input-line" style="width: 200px; height: 50px;"></div>
+                <div class="signature-line">{{ proveedor.nombre }}</div>
             </div>
             <div>
-                <div class="input-line" style="width: 200px; height: 60px;"></div>
-                <div class="signature-line"><span contenteditable="true">NOMBRE COMPLETO DEL CLIENTE</span></div>
+                <div class="input-line" style="width: 200px; height: 50px;"></div>
+                <div class="signature-line">{{ cliente.nombre_completo }}</div>
             </div>
         </div>
 
-        <div class="small-text" style="text-align: center; margin-top: 20px;">
-            Este contrato se firmó por duplicado en la Ciudad de <span contenteditable="true">Guamúchil, Sinaloa</span>, a 
-            <input type="text" value="21" style="width: 20px;"> de 
-            <input type="text" value="OCTUBRE" style="width: 60px;"> de 
-            <input type="text" value="2025" style="width: 40px;">.
+        <div class="small-text" style="text-align: center; margin-top: 40px;">
+            Firmado en Guamúchil, Sinaloa a {% now "d" %} de {% now "F" %} de {% now "Y" %}.
         </div>
 
         <div class="qr-placeholder">
-            QR CODE / FOLIO DE CONTRATO
+            QR CODE<br>{{ contrato.numero }}
         </div>
     </div>
+
 </body>
 </html>
