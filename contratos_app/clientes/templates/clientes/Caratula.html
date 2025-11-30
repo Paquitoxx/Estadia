@@ -4,48 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contrato - {{ cliente.nombre_completo }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #525659; padding: 20px; }
         
-        /* Estilo para los campos editables */
-        [contenteditable="true"], input[type="text"] {
-            border: 1px dashed #ccc;
-            padding: 2px 5px;
-            min-width: 50px;
-            display: inline-block;
-            cursor: text;
-            background: rgba(255, 255, 0, 0.05);
+        /* --- ESTILOS DE EDICIÓN --- */
+        /* Hacemos que los divs editables se vean sutiles en pantalla */
+        [contenteditable="true"] { 
+            border: 1px dashed rgba(0,0,0,0.1); 
+            min-height: 1em; 
+            cursor: text; 
+            background: rgba(255, 255, 0, 0.05); /* Fondo amarillo muy sutil para saber qué editar */
         }
-        input[type="text"] {
-            border: none;
-            border-bottom: 1px solid #000;
-            background: transparent;
-            padding: 0 3px;
-            margin: 0 3px;
-            min-width: 100px;
-            text-align: center;
-        }
-        table td [contenteditable="true"] {
-             width: 100%;
-             display: block;
-             min-height: 1.2em;
-             border: 1px dashed #ccc;
-             padding: 2px;
+        [contenteditable="true"]:focus { outline: 2px solid #3498db; background: white; }
+        
+        input[type="text"] { 
+            border: none; border-bottom: 1px solid #000; background: transparent; 
+            padding: 0 3px; margin: 0 3px; min-width: 50px; text-align: center; font-family: inherit; font-size: inherit;
         }
 
-        /* --- DISEÑO DE LA HOJA (A4) --- */
-        .page { 
-            width: 210mm; 
-            min-height: 296mm; /* Ajustado ligeramente para evitar desbordes */
-            background: white; 
-            margin: 0 auto 20px; 
-            padding: 15mm; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); 
-            position: relative; 
-        }
-
-        /* Estilos originales del contrato */
+        /* --- TU DISEÑO ORIGINAL EXACTO --- */
+        .page { width: 210mm; min-height: 296mm; background: white; margin: 0 auto 20px; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); position: relative; }
         .header { border: 2px solid #000; margin-bottom: 10px; }
         .header-content { display: flex; align-items: center; }
         .logo-section { width: 35%; border-right: 2px solid #000; padding: 15px; display: flex; justify-content: center; align-items: center; }
@@ -66,6 +47,7 @@
         .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .payment-section { border: 1px solid #000; padding: 8px; margin-bottom: 10px; }
         .authorization-box { border: 1px solid #000; padding: 8px; margin-bottom: 10px; font-size: 9px; }
+        
         .signature-section { display: flex; justify-content: space-around; margin-top: 40px; text-align: center; }
         .signature-line { border-top: 1px solid #000; padding-top: 5px; width: 200px; font-weight: bold; font-size: 10px; }
         .footer-note { font-size: 8px; text-align: center; margin-top: 10px; }
@@ -73,60 +55,61 @@
         .title { font-weight: bold; font-size: 11px; margin-bottom: 8px; }
         .small-text { font-size: 8px; line-height: 1.4; }
 
-        /* --- BOTONES DE ACCIÓN (REGRESAR / IMPRIMIR) --- */
-        .barra-acciones {
-            width: 210mm;
-            margin: 0 auto 15px auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* --- LOGICA DE FIRMA (SUPERPUESTA) --- */
+        /* Contenedor relativo para posicionar la firma absoluta sobre él */
+        .signature-wrapper { position: relative; display: inline-block; }
+        
+        .firma-img { 
+            position: absolute; 
+            bottom: 5px; left: 50%; transform: translateX(-50%);
+            max-width: 150px; max-height: 50px;
+            z-index: 10;
+            pointer-events: none; /* Permite hacer click a través de la imagen si fuera necesario */
         }
-        .btn {
-            text-decoration: none; padding: 10px 20px; border-radius: 5px;
-            font-weight: bold; font-size: 14px; cursor: pointer; border: none;
-            display: inline-flex; align-items: center; gap: 8px; color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+        .btn-firmar-aqui {
+            display: block; margin: 0 auto 5px; 
+            font-size: 9px; background: #eee; border: 1px solid #999; 
+            padding: 3px 6px; cursor: pointer; border-radius: 3px; font-weight: bold;
         }
+        .btn-firmar-aqui:hover { background: #ddd; }
+
+        /* --- MODAL (POPUP) --- */
+        #modal-firma {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;
+        }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; text-align: center; width: 90%; max-width: 500px; }
+        canvas { border: 1px solid #ccc; background: #fff; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
+        .modal-btns { margin-top: 15px; display: flex; justify-content: space-between; }
+        .btn-modal { padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-cancel { background: #e74c3c; } .btn-clear { background: #f39c12; } .btn-save { background: #27ae60; }
+
+        /* --- BARRA DE ACCIONES SUPERIOR --- */
+        .barra-acciones { width: 210mm; margin: 0 auto 15px auto; display: flex; justify-content: space-between; align-items: center; }
+        .btn-action { text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; color: white; }
         .btn-regresar { background-color: #e74c3c; }
         .btn-imprimir { background-color: #3498db; }
 
-        /* --- REGLAS DE IMPRESIÓN (MÁGICAS PARA 2 HOJAS) --- */
+        /* --- IMPRESIÓN EXACTA (2 HOJAS) --- */
         @media print {
-            @page {
-                size: A4; /* Fuerza tamaño A4 */
-                margin: 0; /* Elimina márgenes del navegador */
-            }
-            body { 
-                background: white; 
-                padding: 0; 
-                margin: 0; 
-                -webkit-print-color-adjust: exact; /* Para que salgan los colores de fondo */
-            }
-            .barra-acciones { display: none !important; } /* Oculta botones */
+            @page { size: A4; margin: 0; }
+            body { background: white; padding: 0; margin: 0; -webkit-print-color-adjust: exact; }
             
-            .page { 
-                width: 100%; 
-                height: 297mm; /* Altura exacta A4 */
-                margin: 0; 
-                padding: 15mm;
-                box-shadow: none; 
-                page-break-after: always; /* 🔥 FUERZA EL SALTO DE PÁGINA DESPUÉS DE CADA .page */
-                border: none;
-            }
+            /* Ocultar elementos de UI */
+            .barra-acciones, #modal-firma, .btn-firmar-aqui { display: none !important; }
             
-            .page:last-child {
-                page-break-after: auto; /* La última página no necesita salto */
-            }
+            /* Quitar bordes de edición */
+            [contenteditable="true"] { border: none !important; padding: 0 !important; background: transparent !important; }
+            input[type="text"] { border-bottom: 1px solid #000 !important; }
 
-            /* Limpieza visual */
-            [contenteditable="true"] {
-                border: none !important;
-                padding: 0 !important;
-                background: transparent !important;
+            /* Estructura de página */
+            .page { 
+                width: 100%; height: 297mm; margin: 0; padding: 15mm; 
+                box-shadow: none; border: none;
+                page-break-after: always; 
             }
-            input[type="text"] {
-                border-bottom: 1px solid #000 !important;
-            }
+            .page:last-child { page-break-after: auto; }
         }
     </style>
     <script>
@@ -138,12 +121,21 @@
 <body>
     
     <div class="barra-acciones">
-        <a href="{% url 'contratos_recientes' %}" class="btn btn-regresar">
-            ⬅ Regresar
-        </a>
-        <button onclick="window.print()" class="btn btn-imprimir">
-            🖨️ Imprimir / Guardar PDF
-        </button>
+        <a href="{% url 'contratos_recientes' %}" class="btn-action btn-regresar">⬅ Regresar</a>
+        <button onclick="window.print()" class="btn-action btn-imprimir">🖨️ Imprimir</button>
+    </div>
+
+    <div id="modal-firma">
+        <div class="modal-content">
+            <h3>Firma Digital</h3>
+            <p style="font-size: 12px; margin-bottom: 10px;">Firme dentro del cuadro</p>
+            <canvas id="signature-pad"></canvas>
+            <div class="modal-btns">
+                <button class="btn-modal btn-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-modal btn-clear" onclick="limpiarFirma()">Borrar</button>
+                <button class="btn-modal btn-save" onclick="guardarFirma()">Guardar</button>
+            </div>
+        </div>
     </div>
 
     <div class="page">
@@ -221,16 +213,16 @@
         <div class="two-column">
             <table>
                 <tr><td colspan="2" class="section-header">EQUIPO EN COMODATO</td></tr>
-                <tr><td>Marca Modem</td><td>Marca Antena</td></tr>
-                <tr><td>Modelo Modem</td><td>Modelo Antena</td></tr>
-                <tr><td>Serie Modem</td><td>Serie Antena</td></tr>
-                <tr><td>Garantía: 12 Meses</td><td>Garantía: 12 Meses</td></tr>
+                <tr><td><div contenteditable="true">Marca Modem</div></td><td><div contenteditable="true">Marca Antena</div></td></tr>
+                <tr><td><div contenteditable="true">Modelo Modem</div></td><td><div contenteditable="true">Modelo Antena</div></td></tr>
+                <tr><td><div contenteditable="true">Serie Modem</div></td><td><div contenteditable="true">Serie Antena</div></td></tr>
+                <tr><td>Garantía: <div contenteditable="true" style="display:inline;">12 Meses</div></td><td>Garantía: <div contenteditable="true" style="display:inline;">12 Meses</div></td></tr>
             </table>
 
             <table>
                 <tr><td colspan="2" class="section-header">INSTALACIÓN</td></tr>
-                <tr><td colspan="2">{{ cliente.direccion_completa }}</td></tr>
-                <tr><td>{% now "d/m/Y" %}</td><td>Hora:</td></tr>
+                <tr><td colspan="2"><div contenteditable="true">{{ cliente.direccion_completa }}</div></td></tr>
+                <tr><td><div contenteditable="true">{% now "d/m/Y" %}</div></td><td><div contenteditable="true">Hora:</div></td></tr>
                 <tr><td colspan="2">Costo: $ <input type="text" value="500.00" style="width: 50px;"></td></tr>
             </table>
         </div>
@@ -239,18 +231,26 @@
             <tr><td colspan="2" class="section-header">MÉTODO DE PAGO</td></tr>
             <tr>
                 <td style="width: 50%;">
-                    <span class="checkbox checked"></span> Efectivo
-                    <span class="checkbox"></span> Transferencia
+                    <span class="checkbox checked" onclick="toggleCheckbox(this)"></span> Efectivo
+                    <span class="checkbox" onclick="toggleCheckbox(this)"></span> Transferencia
                 </td>
-                <td style="width: 50%;">Detalles adicionales...</td>
+                <td style="width: 50%;"><div contenteditable="true">Detalles adicionales...</div></td>
             </tr>
         </table>
 
         <div class="authorization-box">
             <div style="text-align: center; font-weight:bold;">AUTORIZACIÓN DE CARGO</div>
-            <div class="small-text">Autorizo cargo por 12 meses.</div>
+            <div class="small-text">Autorizo cargo por <input type="text" value="12" style="width:20px"> meses.</div>
             <div style="text-align: right; margin-top: 10px;">
-                <div class="input-line" style="width: 100px;"></div><br>Firma
+                
+                <div class="signature-wrapper" style="min-width: 100px;">
+                    <img id="img-firma-auth" 
+                         src="{% if cliente_obj.firma_imagen %}{{ cliente_obj.firma_imagen.url }}{% endif %}" 
+                         class="firma-img" style="width: 70px; {% if not cliente_obj.firma_imagen %}display:none;{% endif %}">
+                    
+                    <div class="input-line" style="width: 100px;"></div>
+                </div>
+                <br>Firma
             </div>
         </div>
 
@@ -278,31 +278,44 @@
         <table>
             <tr><td colspan="4" class="section-header">SERVICIOS ADICIONALES</td></tr>
             <tr>
-                <td colspan="2">Concepto</td>
-                <td colspan="2">Costo</td>
+                <td colspan="2"><div contenteditable="true">Concepto</div></td>
+                <td colspan="2"><div contenteditable="true">Costo</div></td>
             </tr>
-            <tr><td colspan="4" style="height: 30px;"></td></tr>
+            <tr><td colspan="4" style="height: 30px;"><div contenteditable="true"></div></td></tr>
         </table>
 
         <table>
             <tr><td colspan="4" class="section-header">CONCEPTOS FACTURABLES</td></tr>
             <tr>
-                <td style="width: 25%;">Concepto</td>
-                <td style="width: 35%;">Descripción</td>
-                <td style="width: 15%;">Cant</td>
-                <td style="width: 25%;">Precio</td>
+                <td style="width: 25%;"><div contenteditable="true">Concepto</div></td>
+                <td style="width: 35%;"><div contenteditable="true">Descripción</div></td>
+                <td style="width: 15%;"><div contenteditable="true">Cant</div></td>
+                <td style="width: 25%;"><div contenteditable="true">Precio</div></td>
             </tr>
-            <tr><td colspan="4" style="height: 30px;"></td></tr>
+            <tr><td colspan="4" style="height: 30px;"><div contenteditable="true"></div></td></tr>
         </table>
 
         <div class="signature-section">
             <div>
                 <div class="input-line" style="width: 200px; height: 50px;"></div>
                 <div class="signature-line">{{ proveedor.nombre }}</div>
+                <div>EL PROVEEDOR</div>
             </div>
+
             <div>
-                <div class="input-line" style="width: 200px; height: 50px;"></div>
+                <div class="signature-wrapper">
+                    <img id="img-firma-main" 
+                         src="{% if cliente_obj.firma_imagen %}{{ cliente_obj.firma_imagen.url }}{% endif %}" 
+                         class="firma-img" 
+                         style="{% if not cliente_obj.firma_imagen %}display:none;{% endif %}">
+                    
+                    <button class="btn-firmar-aqui" onclick="abrirModal()">✍️ FIRMAR AQUI</button>
+                    
+                    <div class="input-line" style="width: 200px; margin-top:0;"></div>
+                </div>
+
                 <div class="signature-line">{{ cliente.nombre_completo }}</div>
+                <div>EL SUSCRIPTOR</div>
             </div>
         </div>
 
@@ -315,5 +328,69 @@
         </div>
     </div>
 
+    <script>
+        var canvas = document.getElementById('signature-pad');
+        var signaturePad = new SignaturePad(canvas);
+
+        function abrirModal() {
+            document.getElementById('modal-firma').style.display = 'flex';
+            ajustarCanvas();
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-firma').style.display = 'none';
+        }
+
+        function limpiarFirma() {
+            signaturePad.clear();
+        }
+
+        function ajustarCanvas() {
+            var ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+
+        function guardarFirma() {
+            if (signaturePad.isEmpty()) {
+                alert("Por favor realice la firma antes de guardar.");
+                return;
+            }
+
+            var dataURL = signaturePad.toDataURL("image/png");
+            
+            fetch("{% url 'guardar_firma_digital' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    'cliente_id': "{{ cliente.identificador_externo }}",
+                    'imagen': dataURL
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'ok') {
+                    // Actualizar ambas imágenes en tiempo real
+                    var imgMain = document.getElementById('img-firma-main');
+                    var imgAuth = document.getElementById('img-firma-auth');
+                    
+                    imgMain.src = dataURL;
+                    imgMain.style.display = 'block';
+                    
+                    imgAuth.src = dataURL;
+                    imgAuth.style.display = 'block';
+                    
+                    cerrarModal();
+                } else {
+                    alert("Error al guardar: " + data.msg);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>

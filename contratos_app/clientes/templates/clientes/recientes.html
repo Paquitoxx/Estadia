@@ -35,6 +35,8 @@
                 <th>PDF</th>
                 <th>Excel</th>
                 <th>Contrato Original</th>
+                <!-- Nueva Columna -->
+                <th>Eliminar</th>
             </tr>
         </thead>
 
@@ -78,11 +80,21 @@
                         <span style="color:#999; font-size:0.9em;">No disponible</span>
                     {% endif %}
                 </td>
+
+                <!-- Botón de Eliminar -->
+                <td>
+                    <a href="{% url 'eliminar_contrato' contrato.id %}" 
+                       onclick="return confirm('⚠️ ¿Estás seguro de que deseas eliminar este contrato permanentemente? Esta acción no se puede deshacer.');"
+                       class="btn btn-small" 
+                       style="background-color: #7f8c8d; color: white; text-decoration: none; font-weight:bold;">
+                       🗑️
+                    </a>
+                </td>
             </tr>
 
             {% empty %}
             <tr>
-                <td colspan="7" style="text-align:center; padding: 20px;">
+                <td colspan="8" style="text-align:center; padding: 20px;">
                     No se han generado contratos recientemente.
                 </td>
             </tr>

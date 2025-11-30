@@ -7,8 +7,8 @@
 <!-- 🔵 LOGO SUPERIOR IZQUIERDO -->
 <div style="display:flex; align-items:center; margin-bottom:20px;">
     <img src="https://cdn.discordapp.com/attachments/1422599968648073261/1425183133518790756/Logo_horizontal_wips.png?ex=691d5ef9&is=691c0d79&hm=eb9949b5265c0ba7205eee829ea5a25bdcd4707da92466fcd8f104b87333bddf"
-         alt="Logo"
-         style="height:60px; width:auto;">
+            alt="Logo"
+            style="height:60px; width:auto;">
 </div>
 
 <h1>Bienvenido a Gestión de Contratos</h1>
@@ -24,13 +24,13 @@
 
         <!-- 🟦 FORMULARIO -->
         <form id="form-busqueda-cliente"
-              style="display:flex; gap:5px; margin-bottom:15px;">
+                style="display:flex; gap:5px; margin-bottom:15px;">
             <input type="text"
-                   id="input-busqueda-cliente"
-                   name="q"
-                   placeholder="Buscar cliente..."
-                   style="padding:10px; flex-grow:1; border-radius:6px; border:1px solid #ccc;"
-                   required>
+                    id="input-busqueda-cliente"
+                    name="q"
+                    placeholder="Buscar cliente..."
+                    style="padding:10px; flex-grow:1; border-radius:6px; border:1px solid #ccc;"
+                    required>
 
             <button type="submit" class="btn">Buscar</button>
         </form>
@@ -53,7 +53,7 @@
     padding: 15px;
     margin-top: 10px;
     background-color: #f8f8ff;
-    transition: transform 0.1s;
+    transition: transform 0.1s, background-color 0.3s;
 }
 .resultado-tarjeta:hover {
     box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
@@ -86,18 +86,29 @@
     color: #007bff;
     font-style: italic;
 }
+
+/* Botones */
+.acciones-tarjeta {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espacio entre botones */
+}
+
 .btn-seleccionar {
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 6px 12px;
+    padding: 8px 16px;
     cursor: pointer;
     font-size: 0.9em;
+    transition: background 0.2s;
 }
 .btn-seleccionar:hover {
     background-color: #0056b3;
 }
+
 .btn-generar {
     background-color: #28a745;
     color: white;
@@ -105,15 +116,20 @@
     border-radius: 6px;
     padding: 8px 16px;
     cursor: pointer;
-    margin-top: 20px;
-    font-size: 0.95em;
+    font-size: 0.9em;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
 }
 .btn-generar:hover {
     background-color: #218838;
 }
+
+/* Estado seleccionado */
 .seleccionado {
     border-left: 5px solid #28a745 !important;
     background-color: #e9f9ee !important;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.2);
 }
 </style>
 
@@ -124,8 +140,6 @@
 
 <script>
 $(document).ready(function() {
-
-    let clienteSeleccionado = null;
 
     /* 🟦 FORMULARIO DE BÚSQUEDA */
     $('#form-busqueda-cliente').submit(function(e) {
@@ -187,7 +201,11 @@ $(document).ready(function() {
                     <div class="info-line"><span class="info-label">Empresa:</span>${empresa}</div>
                     <div class="info-line"><span class="info-label">Correo:</span><strong>${email}</strong></div>
                     <div class="info-line"><span class="info-label">Teléfono:</span>${telefono}</div>
-                    <button class="btn-seleccionar">Seleccionar</button>
+                    
+                    <div class="acciones-tarjeta">
+                        <button class="btn-seleccionar">Seleccionar</button>
+                        <!-- Aquí se insertará dinámicamente el botón generar -->
+                    </div>
                 </div>
             `);
 
@@ -195,30 +213,27 @@ $(document).ready(function() {
         });
     }
 
-    /* 🟢 SELECCIONAR CLIENTE */
+    /* 🟢 SELECCIONAR CLIENTE Y MOSTRAR BOTÓN */
     $(document).on("click", ".btn-seleccionar", function() {
+        // 1. Limpiar estados previos (quitar selección y botones antiguos)
         $('.resultado-tarjeta').removeClass('seleccionado');
-        $(this).closest('.resultado-tarjeta').addClass('seleccionado');
+        $('.btn-generar-temp').remove(); 
 
-        clienteSeleccionado = $(this).closest('.resultado-tarjeta').data('id');
+        // 2. Marcar tarjeta actual
+        const tarjeta = $(this).closest('.resultado-tarjeta');
+        tarjeta.addClass('seleccionado');
+        const clienteId = tarjeta.data('id');
 
-        if ($('#btn-generar-contrato').length === 0) {
-            $('#resultados-container-cliente').append(`
-                <div style="text-align:center;">
-                    <a id="btn-generar-contrato" href="#" class="btn-generar">📄 Generar Contrato</a>
-                </div>
-            `);
-        }
-    });
-
-    /* 📄 GENERAR CONTRATO */
-    $(document).on("click", "#btn-generar-contrato", function(e) {
-        e.preventDefault();
-        if (!clienteSeleccionado) {
-            alert('Primero selecciona un cliente.');
-            return;
-        }
-        window.location.href = `/cliente/${clienteSeleccionado}/caratula/`;
+        // 3. Crear el botón de generar
+        const btnGenerar = $(`
+            <a href="/cliente/${clienteId}/caratula/" 
+               class="btn-generar btn-generar-temp">
+               📄 Generar Contrato
+            </a>
+        `);
+        
+        // 4. Insertar AL LADO del botón seleccionar (this)
+        $(this).after(btnGenerar);
     });
 
 });

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>{% block title %}Gestión Contratos{% endblock %}</title>
 
     <!-- JQuery -->
@@ -9,235 +9,223 @@
 
     <!-- ====================== ESTILOS GENERALES ====================== -->
     <style>
+      /* ===== Body ===== */
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f6f9;
+        color: #2c3e50;
+        display: flex;
+        height: 100vh;
+      }
 
-        /* ===== Body ===== */
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            color: #2c3e50;
-            display: flex;
-            height: 100vh;
-        }
+      /* ===== Sidebar ===== */
+      .sidebar {
+        width: 250px;
+        background: #2c3e50;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 0;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+      }
 
-        /* ===== Sidebar ===== */
-        .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
-            box-shadow: 2px 0 6px rgba(0,0,0,0.2);
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-        }
+      .sidebar .logo {
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: #ecf0f1;
+        margin-bottom: 40px;
+      }
 
-        .sidebar .logo {
-            text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            color: #ecf0f1;
-            margin-bottom: 40px;
-        }
+      .sidebar a {
+        color: #ecf0f1;
+        text-decoration: none;
+        padding: 15px 25px;
+        font-weight: 500;
+        display: block;
+        transition: background 0.3s, padding-left 0.2s;
+      }
 
-        .sidebar a {
-            color: #ecf0f1;
-            text-decoration: none;
-            padding: 15px 25px;
-            font-weight: 500;
-            display: block;
-            transition: background 0.3s, padding-left 0.2s;
-        }
+      .sidebar a:hover {
+        background: #1abc9c;
+        padding-left: 35px;
+      }
 
-        .sidebar a:hover {
-            background: #1abc9c;
-            padding-left: 35px;
-        }
+      .sidebar .btn-home {
+        margin-top: auto;
+        background: #1abc9c;
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+        margin: 20px;
+        font-weight: 600;
+        transition: transform 0.2s ease, background 0.3s ease;
+      }
 
-        .sidebar .btn-home {
-            margin-top: auto;
-            background: #1abc9c;
-            color: white;
-            text-align: center;
-            border-radius: 6px;
-            margin: 20px;
-            font-weight: 600;
-            transition: transform 0.2s ease, background 0.3s ease;
-        }
+      .sidebar .btn-home:hover {
+        background: #16a085;
+        transform: scale(1.05);
+      }
 
-        .sidebar .btn-home:hover {
-            background: #16a085;
-            transform: scale(1.05);
-        }
+      /* ===== Main Content ===== */
+      .main-content {
+        margin-left: 250px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
 
-        /* ===== Main Content ===== */
-        .main-content {
-            margin-left: 250px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+      /* ===== Navbar Superior ===== */
+      .navbar {
+        background: #fff;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
 
-        /* ===== Navbar Superior ===== */
-        .navbar {
-            background: #fff;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
+      .navbar span {
+        font-weight: 500;
+        color: #34495e;
+      }
 
-        .navbar span {
-            font-weight: 500;
-            color: #34495e;
-        }
+      /* ===== Contenedor interno ===== */
+      .container {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+      }
 
-        /* ===== Contenedor interno ===== */
-        .container {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
+      /* ===== Tarjetas ===== */
+      .card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+      }
 
-        /* ===== Tarjetas ===== */
-        .card {
-            background: #fff;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease;
-        }
+      .card:hover {
+        transform: translateY(-4px);
+      }
 
-        .card:hover {
-            transform: translateY(-4px);
-        }
+      /* ===== Botones ===== */
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        background: #1abc9c;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
 
-        /* ===== Botones ===== */
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            background: #1abc9c;
-            color: white;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
+      .btn:hover {
+        background: #16a085;
+        transform: scale(1.05);
+      }
 
-        .btn:hover {
-            background: #16a085;
-            transform: scale(1.05);
-        }
+      /* ===== Footer ===== */
+      .footer {
+        background: #ffffff;
+        border-top: 1px solid #e0e0e0;
+        padding: 20px 30px;
+        font-size: 14px;
+        color: #555;
+        display: flex;
+        justify-content: center;
+        margin-top: auto;
+      }
 
-        /* ===== Footer ===== */
-        .footer {
-            background: #ffffff;
-            border-top: 1px solid #e0e0e0;
-            padding: 20px 30px;
-            font-size: 14px;
-            color: #555;
-            display: flex;
-            justify-content: center;
-            margin-top: auto;
-        }
+      .footer-content {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
 
+      .footer-left {
+        line-height: 1.5;
+      }
+
+      .footer-right {
+        text-align: right;
+        line-height: 1.5;
+        color: #777;
+      }
+
+      @media (max-width: 700px) {
         .footer-content {
-            width: 100%;
-            max-width: 1200px;
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
+          flex-direction: column;
+          text-align: center;
         }
-
-        .footer-left {
-            line-height: 1.5;
-        }
-
         .footer-right {
-            text-align: right;
-            line-height: 1.5;
-            color: #777;
+          text-align: center;
         }
-
-        @media (max-width: 700px) {
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            .footer-right {
-                text-align: center;
-            }
-        }
-
+      }
     </style>
 
     {% block extra_head %}{% endblock %}
-</head>
+  </head>
 
-
-
-
-<body>
-
+  <body>
     <!-- ====================== SIDEBAR ====================== -->
     <div class="sidebar">
+      <!-- Logo -->
+      <div class="logo">📑 Contratos</div>
 
-        <!-- Logo -->
-        <div class="logo">📑 Contratos</div>
+      <!-- Opciones -->
+      <a href="{% url 'contratos_recientes' %}">📌 Contratos recientes</a>
+      <!-- ❌ Eliminado: <a href="{% url 'nuevo_contrato' %}">✍️ Nuevo contrato</a> -->
+      <a href="{% url 'todos_contratos' %}">📂 Todos los contratos</a>
 
-        <!-- Opciones -->
-        <a href="{% url 'contratos_recientes' %}">📌 Contratos recientes</a>
-        <!-- ❌ Eliminado: <a href="{% url 'nuevo_contrato' %}">✍️ Nuevo contrato</a> -->
-        <a href="{% url 'todos_contratos' %}">📂 Todos los contratos</a>
-
-        <!-- Botón Inicio -->
-        <a href="{% url 'home' %}" class="btn-home">🏠 Inicio</a>
+      <!-- Botón Inicio -->
+      <a href="{% url 'home' %}" class="btn-home">🏠 Inicio</a>
     </div>
-
-
-
 
     <!-- ====================== MAIN CONTENT ====================== -->
     <div class="main-content">
+      <!-- Navbar superior -->
+      <div class="navbar">
+        <span>Bienvenido al sistema</span>
+      </div>
 
-        <!-- Navbar superior -->
-        <div class="navbar">
-            <span>Bienvenido al sistema</span>
+      <!-- Contenido dinámico -->
+      <div class="container">{% block content %}{% endblock %}</div>
+
+      <!-- ====================== FOOTER ====================== -->
+      <footer class="footer">
+        <div class="footer-content">
+          <div class="footer-left">
+            <strong>COMPUTER WORLD GUAMÚCHIL</strong><br />
+            Guadalupe Victoria OTE 103-1, col, Zona Centro, 81400 Guamúchil,
+            Sin.<br />
+            Tel: (673) 732 7050
+          </div>
+
+          <div class="footer-right">
+            <span>© {{ now|date:"Y" }} - Sistema de Gestión de Contratos</span
+            ><br />
+            <span>Desarrollado para uso interno</span>
+          </div>
         </div>
-
-        <!-- Contenido dinámico -->
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-
-        <!-- ====================== FOOTER ====================== -->
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-left">
-                    <strong>Nombre de la empresa</strong><br>
-                    Dirección física de la empresa<br>
-                    Tel: (000) 000 0000 · Correo: contacto@empresa.com
-                </div>
-
-                <div class="footer-right">
-                    <span>© {{ now|date:"Y" }} - Sistema de Gestión de Contratos</span><br>
-                    <span>Desarrollado para uso interno</span>
-                </div>
-            </div>
-        </footer>
-
-    </div> <!-- cierre main-content -->
-
+      </footer>
+    </div>
+    <!-- cierre main-content -->
 
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>

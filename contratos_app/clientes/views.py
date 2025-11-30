@@ -1,5 +1,4 @@
 import os
-import re
 import json
 import base64
 import requests
@@ -12,24 +11,23 @@ from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string 
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import LETTER
-from openpyxl import Workbook
-
+# Modelos y Formularios
 from .models import ClienteLocal, Contrato
 from .forms import ClienteForm, ContratoForm
 
 # ==========================================
-# 🔹 UTILIDADES
+# 🔹 1. UTILIDADES
 # ==========================================
 
 def obtener_fecha_actual_texto():
+    """Retorna la fecha actual en formato texto (ej. 24 de Noviembre de 2025)."""
     meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
              "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     hoy = datetime.date.today()
     return f"{hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
 
 def consultar_api(endpoint, params=None):
+    """Consulta la API externa y maneja errores básicos."""
     base_url = os.getenv("API_URL")
     api_key = os.getenv("API_KEY")
 
@@ -44,7 +42,7 @@ def consultar_api(endpoint, params=None):
         response = requests.get(url, headers=headers, params=params, timeout=10)
         if response.status_code == 200:
             data = response.json()
-            # La API a veces devuelve lista o dict, normalizamos aquí
+            # Normalización de respuesta (Lista vs Diccionario)
             if isinstance(data, list): return data
             if isinstance(data, dict): return data.get('results', data)
             return []
@@ -52,32 +50,85 @@ def consultar_api(endpoint, params=None):
     except Exception as e:
         return {'error': str(e)}
 
+
 # ==========================================
-# 🔹 VISTAS DE LISTADO Y VISUALIZACIÓN
+# 🔹 2. NAVEGACIÓN Y LISTADOS
 # ==========================================
 
 def home(request):
     return render(request, 'clientes/home.html')
 
 def contratos_recientes(request):
-    contratos = Contrato.objects.select_related("cliente").order_by("-fecha_generacion")[:10]
+    """ Muestra los últimos 20 contratos generados. """
+    contratos = Contrato.objects.select_related("cliente").order_by("-fecha_generacion")[:20]
     return render(request, "clientes/recientes.html", {"contratos": contratos})
 
 def todos_contratos(request):
+    """ Listado paginado de todos los contratos. """
     lista = Contrato.objects.select_related("cliente").order_by("-fecha_generacion")
     paginator = Paginator(lista, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
     return render(request, "clientes/todos.html", {"page_obj": page_obj, "contratos": page_obj.object_list})
 
 def ver_contrato_guardado(request, contrato_id):
-    """ Muestra el HTML guardado en la BD (snapshot histórico) """
+    """ Recupera el HTML histórico guardado en la BD para visualización. """
     contrato = get_object_or_404(Contrato, pk=contrato_id)
     if contrato.html_contenido:
         return HttpResponse(contrato.html_contenido)
     return HttpResponse("Este contrato no tiene versión HTML guardada.", status=404)
 
+
 # ==========================================
-# 🔹 BÚSQUEDA
+# 🔹 3. GESTIÓN DE CONTRATOS (GUARDAR / ELIMINAR)
+# ==========================================
+
+@csrf_exempt
+def guardar_contrato_confirmado(request):
+    """
+    NUEVO: Recibe el HTML final (con ediciones manuales y firmas) y lo guarda en la BD.
+    Esta vista es llamada por el botón 'Guardar Contrato' en la carátula.
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            cliente_id_ext = data.get('cliente_id')
+            html_content = data.get('html')
+            datos_json = data.get('datos_extra', {})
+
+            if not cliente_id_ext or not html_content:
+                return JsonResponse({'status': 'error', 'msg': 'Faltan datos críticos'})
+
+            # Aseguramos que el cliente exista localmente para vincularlo
+            cliente_local, _ = ClienteLocal.objects.get_or_create(
+                identificador_externo=str(cliente_id_ext),
+                defaults={'nombre': 'Cliente Importado'}
+            )
+
+            # Creamos el registro del contrato
+            nuevo_contrato = Contrato.objects.create(
+                cliente=cliente_local,
+                tipo="Contrato de Servicio",
+                datos=datos_json,
+                html_contenido=html_content # Guardamos el HTML editado
+            )
+
+            return JsonResponse({'status': 'ok', 'id': nuevo_contrato.id})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'msg': str(e)})
+
+    return JsonResponse({'status': 'error', 'msg': 'Método no permitido'})
+
+def eliminar_contrato(request, contrato_id):
+    """ Elimina un contrato y regresa a la página anterior. """
+    contrato = get_object_or_404(Contrato, pk=contrato_id)
+    contrato.delete()
+    # Redirige a la página desde donde se hizo la petición (recientes o todos)
+    return redirect(request.META.get('HTTP_REFERER', 'contratos_recientes'))
+
+
+# ==========================================
+# 🔹 4. BÚSQUEDA Y CLIENTES
 # ==========================================
 
 def buscar_cliente(request):
@@ -92,57 +143,56 @@ def buscar_cliente(request):
 
     return render(request, 'clientes/busqueda_clientes.html', {'busqueda': query, 'resultados': resultados})
 
+
 # ==========================================
-# 🔹 GENERACIÓN DE CARÁTULA (CORE)
+# 🔹 5. GENERACIÓN DE CARÁTULA (VISTA PREVIA)
 # ==========================================
 
 def caratula_cliente(request, cliente_id):
-    # 1. Obtener Datos API
+    """
+    Obtiene datos de la API y muestra la carátula para editar/firmar.
+    NOTA: Ya NO guarda automáticamente el contrato en la BD.
+    """
+    # A. Obtener Datos API
     datos = consultar_api(f"/clients/{cliente_id}")
 
-    # Normalizar respuesta (Puede ser Lista [dict] o Dict)
     if isinstance(datos, list) and len(datos) > 0:
-        # Buscamos por ID exacto dentro de la lista, o tomamos el primero
+        # Busca el ID exacto o toma el primero
         cliente_data = next((item for item in datos if item.get("id") == int(cliente_id)), datos[0])
     elif isinstance(datos, dict) and "error" not in datos:
         cliente_data = datos
     else:
         cliente_data = {}
 
-    # 2. Mapeo de Datos (Basado en tu JSON provisto)
-    
-    # Contactos (Array en JSON)
+    # B. Mapeo de Datos
     contactos = cliente_data.get("contacts", [])
     contacto_principal = contactos[0] if contactos else {}
 
     telefono = contacto_principal.get("phone", "")
     email = contacto_principal.get("email", "")
-
-    # Dirección (fullAddress > street1)
+    
     calle = cliente_data.get("fullAddress") or cliente_data.get("street1") or "Domicilio no registrado"
     ciudad = cliente_data.get("city") or ""
     cp = cliente_data.get("zipCode") or ""
     direccion_str = f"{calle}, {ciudad}. CP: {cp}"
 
-    # Nombre
     nombre_completo = f"{cliente_data.get('firstName', '')} {cliente_data.get('lastName', '')}".strip()
 
-    # Objeto Cliente para Template
+    # Objeto Cliente Contexto
     cliente_obj = {
         "nombre_completo": nombre_completo,
         "telefono": telefono,
         "email": email,
         "direccion_completa": direccion_str,
         "rfc": cliente_data.get("companyTaxId") or "XAXX010101000",
-        "ciudad": ciudad
+        "ciudad": ciudad,
+        "identificador_externo": str(cliente_data.get("id"))
     }
 
-    # Objeto Proveedor
     proveedor = {
         "nombre": cliente_data.get("organizationName", "Computer World Guamuchil"),
     }
 
-    # Contexto Final
     context = {
         "cliente": cliente_obj,
         "proveedor": proveedor,
@@ -150,9 +200,7 @@ def caratula_cliente(request, cliente_id):
         "contrato": { "numero": f"CONT-{cliente_id}" }
     }
 
-    # 3. Guardado Automático (Persistencia)
-    
-    # A. Guardar Cliente Local
+    # C. Sincronización Cliente Local (Necesario para guardar firma posteriormente)
     cliente_db, _ = ClienteLocal.objects.update_or_create(
         identificador_externo=str(cliente_id),
         defaults={
@@ -162,22 +210,63 @@ def caratula_cliente(request, cliente_id):
             'direccion': direccion_str
         }
     )
+    
+    # D. Inyectar firma existente si la hay (para mostrarla en la vista previa)
+    if cliente_db.firma_imagen:
+        cliente_obj["firma_imagen"] = cliente_db.firma_imagen
+        context["cliente_db"] = cliente_db
 
-    # B. Renderizar HTML (Snapshot)
-    html_renderizado = render_to_string("clientes/Caratula.html", context, request=request)
+    # E. Renderizar plantilla (Sin guardar Contrato aún)
+    return render(request, "clientes/Caratula.html", context)
 
-    # C. Guardar Contrato
-    Contrato.objects.create(
-        cliente=cliente_db,
-        tipo="Carátula Automática",
-        datos=cliente_data,            
-        html_contenido=html_renderizado 
-    )
-
-    return HttpResponse(html_renderizado)
 
 # ==========================================
-# 🔹 OTRAS VISTAS (LEGACY / STUBS)
+# 🔹 6. FIRMA DIGITAL
+# ==========================================
+
+@csrf_exempt
+def guardar_firma_digital(request):
+    """
+    Recibe base64 del canvas, crea imagen y la asocia al ClienteLocal.
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            cliente_id = data.get('cliente_id')
+            imagen_b64 = data.get('imagen')
+
+            if not cliente_id or not imagen_b64:
+                return JsonResponse({'status': 'error', 'msg': 'Datos incompletos'})
+
+            cliente = ClienteLocal.objects.filter(identificador_externo=str(cliente_id)).first()
+            
+            if not cliente:
+                return JsonResponse({'status': 'error', 'msg': 'Cliente no encontrado localmente'})
+
+            # Procesar Base64
+            if ';base64,' in imagen_b64:
+                format, imgstr = imagen_b64.split(';base64,') 
+                ext = format.split('/')[-1] 
+            else:
+                imgstr = imagen_b64
+                ext = "png"
+            
+            file_name = f"firma_{cliente.id}_{datetime.datetime.now().timestamp()}.{ext}"
+            data_file = ContentFile(base64.b64decode(imgstr), name=file_name)
+
+            cliente.firma_imagen = data_file
+            cliente.save()
+
+            return JsonResponse({'status': 'ok', 'url': cliente.firma_imagen.url})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'msg': str(e)})
+    
+    return JsonResponse({'status': 'error', 'msg': 'Método no permitido'})
+
+
+# ==========================================
+# 🔹 7. OTRAS VISTAS (MANUALES / LEGACY)
 # ==========================================
 
 def nuevo_contrato(request):
@@ -193,18 +282,17 @@ def subir_ine(request, cliente_id):
             return redirect('nuevo_contrato')
     return render(request, 'clientes/subir_ine.html', {'form': form, 'cliente': cliente})
 
-@csrf_exempt
-def guardar_firma(request):
-    # (Lógica de guardado de firma base64 igual que antes)
-    return JsonResponse({'status': 'ok'})
-
 def caratula_pdf(request, cliente_id):
-    return HttpResponse("Función PDF disponible.")
+    return HttpResponse("Función PDF disponible para implementación futura.")
+
+def detalle_contrato(request, cliente_id, cliente_nombre):
+    contrato = Contrato.objects.filter(cliente__identificador_externo=cliente_id).last()
+    return render(request, 'clientes/detalle.html', {'contrato': contrato})
 
 @csrf_exempt
 def crear_contrato_desde_cliente(request):
     return JsonResponse({'status': 'ok'})
 
-def detalle_contrato(request, cliente_id, cliente_nombre):
-    contrato = Contrato.objects.filter(cliente__identificador_externo=cliente_id).last()
-    return render(request, 'clientes/detalle.html', {'contrato': contrato})
+@csrf_exempt
+def guardar_firma(request):
+    return JsonResponse({'status': 'ok'})
