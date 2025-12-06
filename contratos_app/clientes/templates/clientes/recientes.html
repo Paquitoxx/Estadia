@@ -3,24 +3,33 @@
 {% block content %}
 
 <div style="display:flex; align-items:center; margin-bottom:20px;">
-    <img src="https://cdn.discordapp.com/attachments/1422599968648073261/1425183133518790756/Logo_horizontal_wips.png?ex=691d5ef9&is=691c0d79&hm=eb9949b5265c0ba7205eee829ea5a25bdcd4707da92466fcd8f104b87333bddf"
-         alt="Logo"
+    <img src="https://cdn.discordapp.com/attachments/1422599968648073261/1425183133518790756/Logo_horizontal_wips.png?ex=691d5ef9&is=691c0d79&hm=eb9949b5265c0ba7205eee829ea5a25bdcd4707da92466fcd8f104b87333bddf" 
+         alt="Logo Computer World" 
          style="height:60px; width:auto;">
 </div>
 
 <h2>Contratos recientes</h2>
 
-<form method="get"
-      action="{% url 'buscar_cliente' %}"
-      style="margin-bottom:20px;">
+<form method="get" 
+      action="{% url 'contratos_recientes' %}" 
+      style="margin-bottom:20px; display:flex; gap: 10px; align-items: center;">
 
-    <input type="text"
-           name="q"
-           id="busqueda"
-           placeholder="Buscar cliente por nombre, correo o ID"
+    <input type="text" 
+           name="q" 
+           id="busqueda" 
+           placeholder="Buscar por nombre, correo o ID..." 
+           value="{{ request.GET.q|default:'' }}" 
            style="padding:10px; width:40%; border-radius:6px; border:1px solid #ccc;">
 
-    <button type="submit" class="btn">Buscar Nuevo</button>
+    <button type="submit" class="btn" style="background-color: #2c3e50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+        Buscar
+    </button>
+
+    {% if request.GET.q %}
+        <a href="{% url 'contratos_recientes' %}" class="btn" style="background-color: #95a5a6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+            Limpiar filtro
+        </a>
+    {% endif %}
 </form>
 
 <div class="table-container">
@@ -35,8 +44,7 @@
                 <th>PDF</th>
                 <th>Excel</th>
                 <th>Contrato Original</th>
-                <!-- Nueva Columna -->
-                <th>Eliminar</th>
+                <th>Acciones</th>
             </tr>
         </thead>
 
@@ -50,9 +58,9 @@
 
                 <td>
                     {% if contrato.pdf %}
-                    <a href="{{ contrato.pdf.url }}"
-                       target="_blank"
-                       class="btn btn-small" style="background-color: #e74c3c; color: white;">📄 PDF</a>
+                    <a href="{{ contrato.pdf.url }}" 
+                       target="_blank" 
+                       class="btn-small" style="background-color: #e74c3c; color: white;">PDF</a>
                     {% else %}
                        <span style="color:#ccc;">-</span>
                     {% endif %}
@@ -60,9 +68,9 @@
 
                 <td>
                     {% if contrato.excel %}
-                    <a href="{{ contrato.excel.url }}"
-                       target="_blank"
-                       class="btn btn-small" style="background-color: #27ae60; color: white;">📊 Excel</a>
+                    <a href="{{ contrato.excel.url }}" 
+                       target="_blank" 
+                       class="btn-small" style="background-color: #27ae60; color: white;">Excel</a>
                     {% else %}
                        <span style="color:#ccc;">-</span>
                     {% endif %}
@@ -72,30 +80,33 @@
                     {% if contrato.html_contenido %}
                         <a href="{% url 'ver_contrato_guardado' contrato.id %}" 
                            target="_blank" 
-                           class="btn btn-small" 
+                           class="btn-small" 
                            style="background-color: #3498db; color: white; text-decoration: none;">
-                           👁️ Ver Documento
+                           Ver Documento
                         </a>
                     {% else %}
                         <span style="color:#999; font-size:0.9em;">No disponible</span>
                     {% endif %}
                 </td>
 
-                <!-- Botón de Eliminar -->
                 <td>
                     <a href="{% url 'eliminar_contrato' contrato.id %}" 
-                       onclick="return confirm('⚠️ ¿Estás seguro de que deseas eliminar este contrato permanentemente? Esta acción no se puede deshacer.');"
-                       class="btn btn-small" 
-                       style="background-color: #7f8c8d; color: white; text-decoration: none; font-weight:bold;">
-                       🗑️
+                       onclick="return confirm('¿Estás seguro de que deseas eliminar este contrato permanentemente? Esta acción no se puede deshacer.');"
+                       class="btn-small" 
+                       style="background-color: #7f8c8d; color: white; text-decoration: none; font-weight:bold; padding: 6px 10px;">
+                       Eliminar
                     </a>
                 </td>
             </tr>
 
             {% empty %}
             <tr>
-                <td colspan="8" style="text-align:center; padding: 20px;">
-                    No se han generado contratos recientemente.
+                <td colspan="8" style="text-align:center; padding: 20px; color: #666;">
+                    {% if request.GET.q %}
+                        No se encontraron contratos con esa búsqueda.
+                    {% else %}
+                        No se han generado contratos recientemente.
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -115,7 +126,7 @@
         width: 100%;
         border-collapse: collapse;
         margin-top: 15px;
-        font-size: 15px;
+        font-size: 14px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         background: white;
         border-radius: 8px;
@@ -130,7 +141,7 @@
 
     .styled-table th,
     .styled-table td {
-        padding: 14px 18px;
+        padding: 12px 15px;
         border-bottom: 1px solid #ddd;
         vertical-align: middle;
     }
@@ -142,12 +153,13 @@
 
     .btn-small {
         padding: 6px 12px;
-        font-size: 13px;
+        font-size: 12px;
         border-radius: 4px;
         cursor: pointer;
         display: inline-block;
         border: none;
         font-weight: 500;
+        text-align: center;
     }
 </style>
 

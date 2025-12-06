@@ -114,11 +114,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# ============================
+# INTERNACIONALIZACIÓN (Configuración Regional)
+# ============================
+
+LANGUAGE_CODE = 'es-mx'  # Español de México
+
+TIME_ZONE = 'America/Mazatlan'  # Zona Horaria de Sinaloa
+
 USE_I18N = True
-USE_TZ = True
+
+USE_TZ = True  # Mantiene el guardado en UTC pero convierte a local al mostrar
 
 
 # Static files

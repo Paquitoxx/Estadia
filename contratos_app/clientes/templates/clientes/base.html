@@ -4,10 +4,8 @@
     <meta charset="utf-8" />
     <title>{% block title %}Gestión Contratos{% endblock %}</title>
 
-    <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- ====================== ESTILOS GENERALES ====================== -->
     <style>
       /* ===== Body ===== */
       body {
@@ -182,31 +180,22 @@
   </head>
 
   <body>
-    <!-- ====================== SIDEBAR ====================== -->
     <div class="sidebar">
-      <!-- Logo -->
-      <div class="logo">📑 Contratos</div>
+      <div class="logo">Contratos</div>
 
-      <!-- Opciones -->
-      <a href="{% url 'contratos_recientes' %}">📌 Contratos recientes</a>
-      <!-- ❌ Eliminado: <a href="{% url 'nuevo_contrato' %}">✍️ Nuevo contrato</a> -->
-      <a href="{% url 'todos_contratos' %}">📂 Todos los contratos</a>
+      <a href="{% url 'contratos_recientes' %}">Contratos recientes</a>
+      <a href="{% url 'todos_contratos' %}">Todos los contratos</a>
 
-      <!-- Botón Inicio -->
-      <a href="{% url 'home' %}" class="btn-home">🏠 Inicio</a>
+      <a href="{% url 'home' %}" class="btn-home">Inicio</a>
     </div>
 
-    <!-- ====================== MAIN CONTENT ====================== -->
     <div class="main-content">
-      <!-- Navbar superior -->
       <div class="navbar">
         <span>Bienvenido al sistema</span>
       </div>
 
-      <!-- Contenido dinámico -->
       <div class="container">{% block content %}{% endblock %}</div>
 
-      <!-- ====================== FOOTER ====================== -->
       <footer class="footer">
         <div class="footer-content">
           <div class="footer-left">
@@ -224,8 +213,6 @@
         </div>
       </footer>
     </div>
-    <!-- cierre main-content -->
-
     {% block extra_js %}{% endblock %}
   </body>
 </html>
